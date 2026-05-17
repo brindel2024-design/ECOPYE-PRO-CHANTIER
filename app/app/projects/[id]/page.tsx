@@ -1,12 +1,12 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, AlertTriangle, MapPin, Calendar, CheckCircle2,
-  Circle, XCircle, Phone, FileText, Image, StickyNote
+  ArrowLeft, MapPin, Calendar, CheckCircle2, Circle, XCircle, Phone,
+  FileText, Image as ImageIcon, StickyNote, Loader2, TrendingUp,
 } from 'lucide-react'
-import { MOCK_PROJECTS, MOCK_CLIENTS } from '@/lib/mock-data'
 import { PROJECT_STATUS_LABELS, ProjectStatus } from '@/lib/types'
 import { formatCurrency, formatDate, getRiskColor } from '@/lib/utils'
 
@@ -21,42 +21,9 @@ const STATUS_COLORS: Record<string, string> = {
   ANNULE: 'text-gray-600 bg-gray-100',
 }
 
-function StepIcon({ status }: { status: string }) {
-  switch (status) {
-    case 'VALIDE_CLIENT':
-    case 'TERMINE':
-      return (
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-        </span>
-      )
-    case 'EN_COURS':
-      return (
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
-          <span className="h-3 w-3 rounded-full bg-blue-500 animate-pulse" />
-        </span>
-      )
-    case 'PROBLEME':
-      return (
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100">
-          <XCircle className="h-4 w-4 text-red-600" />
-        </span>
-      )
-    default:
-      return (
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-          <Circle className="h-4 w-4 text-gray-400" />
-        </span>
-      )
-  }
-}
-
 const STEP_STATUS_LABELS: Record<string, string> = {
-  EN_ATTENTE: 'En attente',
-  EN_COURS: 'En cours',
-  TERMINE: 'Terminé',
-  VALIDE_CLIENT: 'Validé client',
-  PROBLEME: 'Problème',
+  EN_ATTENTE: 'En attente', EN_COURS: 'En cours', TERMINE: 'Terminé',
+  VALIDE_CLIENT: 'Validé client', PROBLEME: 'Problème',
 }
 
 const STEP_STATUS_COLORS: Record<string, string> = {
@@ -67,11 +34,55 @@ const STEP_STATUS_COLORS: Record<string, string> = {
   PROBLEME: 'text-red-700 bg-red-100',
 }
 
+function StepIcon({ status }: { status: string }) {
+  if (status === 'VALIDE_CLIENT' || status === 'TERMINE') {
+    return <span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-4 w-4 text-green-600" /></span>
+  }
+  if (status === 'EN_COURS') {
+    return <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100"><span className="h-3 w-3 rounded-full bg-blue-500 animate-pulse" /></span>
+  }
+  if (status === 'PROBLEME') {
+    return <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100"><XCircle className="h-4 w-4 text-red-600" /></span>
+  }
+  return <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100"><Circle className="h-4 w-4 text-gray-400" /></span>
+}
+
+interface ProjectStep {
+  id: string; title: string; status: string; order: number; validatedByClient: boolean
+}
+
+interface ProjectData {
+  id: string; title: string; description: string | null
+  status: string; riskLevel: string; progress: number
+  address: string; city: string; postalCode: string
+  plannedBudget: number; actualBudget: number
+  startDate: string | null; endDate: string | null; notes: string | null
+  client: { id: string; firstName: string; lastName: string; phone: string; city: string } | null
+  steps: ProjectStep[]
+  _count: { photos: number }
+}
+
 export default function ProjectDetailPage() {
   const params = useParams()
   const id = params?.id as string
 
-  const project = MOCK_PROJECTS.find((p) => p.id === id)
+  const [project, setProject] = useState<ProjectData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch(`/api/projects/${id}`)
+    if (res.ok) { const d = await res.json(); setProject(d.data) }
+    setLoading(false)
+  }, [id])
+
+  useEffect(() => { load() }, [load])
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
+  }
+
   if (!project) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
@@ -80,49 +91,41 @@ export default function ProjectDetailPage() {
         </Link>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
           <p className="text-lg font-medium">Chantier introuvable</p>
-          <p className="text-sm mt-1">L&apos;identifiant {id} ne correspond à aucun chantier.</p>
         </div>
       </div>
     )
   }
 
-  const client = MOCK_CLIENTS.find((c) => c.id === project.clientId)
   const statusColor = STATUS_COLORS[project.status] || 'text-gray-600 bg-gray-100'
   const riskColor = getRiskColor(project.riskLevel)
   const overBudget = project.actualBudget > 0 && project.actualBudget > project.plannedBudget
   const budgetDiff = project.actualBudget > 0 ? Math.abs(project.actualBudget - project.plannedBudget) : null
-  const steps = project.steps ?? []
+  const steps = [...(project.steps ?? [])].sort((a, b) => a.order - b.order)
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Back */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg text-sm">
+          {toast}
+        </div>
+      )}
+
       <Link href="/app/projects" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
         <ArrowLeft className="h-4 w-4" /> Retour aux chantiers
       </Link>
 
-      {/* Simulation badge */}
-      <div className="flex justify-end mb-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-          <AlertTriangle className="h-3 w-3" />
-          Simulation — données fictives
-        </span>
-      </div>
-
-      {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900">{project.title}</h1>
-            {project.description && (
-              <p className="text-sm text-gray-500 mt-1">{project.description}</p>
-            )}
+            {project.description && <p className="text-sm text-gray-500 mt-1">{project.description}</p>}
             <div className="flex items-center gap-1.5 mt-2 text-sm text-gray-500">
               <MapPin className="h-4 w-4" />
               {project.address}, {project.postalCode} {project.city}
             </div>
             <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
               <Calendar className="h-4 w-4" />
-              Du {formatDate(project.startDate)} au {formatDate(project.endDate)}
+              Du {project.startDate ? formatDate(project.startDate) : '—'} au {project.endDate ? formatDate(project.endDate) : '—'}
             </div>
           </div>
           <div className="flex flex-col gap-2 items-start sm:items-end">
@@ -134,24 +137,18 @@ export default function ProjectDetailPage() {
             </span>
           </div>
         </div>
-
-        {/* Progress */}
         <div className="mt-5">
           <div className="flex justify-between text-sm mb-1.5">
             <span className="text-gray-600 font-medium">Avancement global</span>
             <span className="font-bold text-gray-900">{project.progress}%</span>
           </div>
           <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-500"
-              style={{ width: `${project.progress}%` }}
-            />
+            <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${project.progress}%` }} />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        {/* Budget */}
         <div className="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">Budget</h2>
           <div className="flex gap-8">
@@ -167,49 +164,48 @@ export default function ProjectDetailPage() {
             </div>
           </div>
           {budgetDiff !== null && (
-            <p className={`mt-3 text-sm font-medium ${overBudget ? 'text-red-600' : 'text-green-600'}`}>
-              {overBudget ? `⚠ Dépassement de ${formatCurrency(budgetDiff)}` : `✓ Économie de ${formatCurrency(budgetDiff)}`}
+            <p className={`mt-3 text-sm font-medium flex items-center gap-1 ${overBudget ? 'text-red-600' : 'text-green-600'}`}>
+              <TrendingUp className="h-4 w-4" />
+              {overBudget ? `Dépassement de ${formatCurrency(budgetDiff)}` : `Économie de ${formatCurrency(budgetDiff)}`}
             </p>
           )}
         </div>
 
-        {/* Client */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Client</h2>
-          {client ? (
+          {project.client ? (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
-                  {client.firstName[0]}{client.lastName[0]}
+                  {project.client.firstName[0]}{project.client.lastName[0]}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{client.firstName} {client.lastName}</p>
-                  <p className="text-xs text-gray-400">{client.city}</p>
+                  <p className="text-sm font-medium text-gray-900">{project.client.firstName} {project.client.lastName}</p>
+                  <p className="text-xs text-gray-400">{project.client.city}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-2">
-                <Phone className="h-3.5 w-3.5" />
-                {client.phone}
+                <Phone className="h-3.5 w-3.5" />{project.client.phone}
               </div>
+              <Link href={`/app/clients/${project.client.id}`} className="text-xs text-blue-600 hover:underline mt-2 block">
+                Voir la fiche client →
+              </Link>
             </div>
           ) : (
-            <p className="text-sm text-gray-400">Client introuvable</p>
+            <p className="text-sm text-gray-400">Aucun client associé</p>
           )}
         </div>
       </div>
 
-      {/* Steps timeline */}
       {steps.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
           <h2 className="text-sm font-semibold text-gray-700 mb-5">Étapes du chantier</h2>
           <div className="space-y-0">
-            {steps.sort((a, b) => a.order - b.order).map((step, idx) => (
+            {steps.map((step, idx) => (
               <div key={step.id} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <StepIcon status={step.status} />
-                  {idx < steps.length - 1 && (
-                    <div className="w-px flex-1 bg-gray-100 my-1" style={{ minHeight: 16 }} />
-                  )}
+                  {idx < steps.length - 1 && <div className="w-px flex-1 bg-gray-100 my-1" style={{ minHeight: 16 }} />}
                 </div>
                 <div className="pb-4 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -232,22 +228,33 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Action buttons */}
+      {project.notes && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">Notes</h2>
+          <p className="text-sm text-gray-600 whitespace-pre-wrap">{project.notes}</p>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-3">
-        {[
-          { icon: Image, label: 'Photos du chantier' },
-          { icon: StickyNote, label: 'Ajouter une note' },
-          { icon: FileText, label: 'Générer rapport' },
-        ].map(({ icon: Icon, label }) => (
-          <button
-            key={label}
-            onClick={() => alert('Simulation — fonctionnalité non disponible')}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
-          >
-            <Icon className="h-4 w-4 text-gray-500" />
-            {label}
-          </button>
-        ))}
+        <Link
+          href={`/app/photos?projectId=${project.id}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
+        >
+          <ImageIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
+          Photos du chantier {project._count.photos > 0 && `(${project._count.photos})`}
+        </Link>
+        <button
+          onClick={() => { setToast('Fonctionnalité disponible prochainement'); setTimeout(() => setToast(null), 3000) }}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
+        >
+          <StickyNote className="h-4 w-4 text-gray-500" />Ajouter une note
+        </button>
+        <button
+          onClick={() => { setToast('Rapport PDF disponible prochainement'); setTimeout(() => setToast(null), 3000) }}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
+        >
+          <FileText className="h-4 w-4 text-gray-500" />Générer rapport
+        </button>
       </div>
     </div>
   )

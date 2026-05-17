@@ -10,31 +10,27 @@ export async function GET(request: Request) {
     if (companyError) return companyError
 
     const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search')?.trim()
-    const type = searchParams.get('type')
+    const start = searchParams.get('start')
+    const end = searchParams.get('end')
 
-    const data = await prisma.client.findMany({
+    const dateFilter: Record<string, Date> = {}
+    if (start) dateFilter.gte = new Date(start)
+    if (end) dateFilter.lte = new Date(end)
+
+    const data = await prisma.scheduleEvent.findMany({
       where: {
         companyId,
-        active: true,
-        ...(type ? { type } : {}),
-        ...(search
-          ? {
-              OR: [
-                { firstName: { contains: search } },
-                { lastName: { contains: search } },
-                { email: { contains: search } },
-                { companyName: { contains: search } },
-              ],
-            }
+        ...(Object.keys(dateFilter).length > 0
+          ? { startDate: dateFilter }
           : {}),
       },
-      orderBy: { createdAt: 'desc' },
+      include: { project: true, technician: true },
+      orderBy: { startDate: 'asc' },
     })
 
     return NextResponse.json({ success: true, data, total: data.length })
   } catch (e) {
-    console.error('GET /api/clients error:', e)
+    console.error('GET /api/schedule error:', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
@@ -48,46 +44,44 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const {
-      type,
-      firstName,
-      lastName,
-      companyName,
-      email,
-      phone,
-      address,
-      city,
-      postalCode,
-      notes,
-      trustScore,
+      title,
+      description,
+      startDate,
+      endDate,
+      status,
+      location,
+      color,
+      projectId,
+      technicianId,
     } = body
 
-    if (!firstName || !lastName || !email) {
+    if (!title || !startDate || !endDate) {
       return NextResponse.json(
-        { error: 'Champs requis manquants (firstName, lastName, email)' },
+        { error: 'Champs requis manquants (title, startDate, endDate)' },
         { status: 400 }
       )
     }
 
-    const data = await prisma.client.create({
+    const data = await prisma.scheduleEvent.create({
       data: {
         companyId,
-        type: type ?? 'PARTICULIER',
-        firstName,
-        lastName,
-        companyName: companyName ?? null,
-        email,
-        phone: phone ?? '',
-        address: address ?? '',
-        city: city ?? '',
-        postalCode: postalCode ?? '',
-        notes: notes ?? null,
-        trustScore: trustScore ?? 5,
+        title,
+        description: description ?? null,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        status: status ?? 'PLANIFIE',
+        location: location ?? null,
+        color: color ?? '#3b82f6',
+        projectId: projectId ?? null,
+        technicianId: technicianId ?? null,
+        userId: session.user.id,
       },
+      include: { project: true, technician: true },
     })
 
     return NextResponse.json({ success: true, data }, { status: 201 })
   } catch (e) {
-    console.error('POST /api/clients error:', e)
+    console.error('POST /api/schedule error:', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

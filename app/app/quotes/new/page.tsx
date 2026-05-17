@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Trash2, Sparkles, Loader2 } from 'lucide-react'
-import { MOCK_CLIENTS } from '@/lib/mock-data'
+import { ArrowLeft, Plus, Trash2, Sparkles, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
 interface QuoteLine {
@@ -16,6 +15,13 @@ interface QuoteLine {
   vatRate: number
   totalHT: number
   isLabor: boolean
+}
+
+interface ClientOption {
+  id: string
+  firstName: string
+  lastName: string
+  city: string
 }
 
 const AI_TEMPLATES: Record<string, { title: string; lines: Omit<QuoteLine, 'id'>[] }> = {
@@ -57,13 +63,38 @@ const AI_TEMPLATES: Record<string, { title: string; lines: Omit<QuoteLine, 'id'>
 
 export default function NewQuotePage() {
   const router = useRouter()
+  const [clients, setClients] = useState<ClientOption[]>([])
+  const [clientsLoading, setClientsLoading] = useState(true)
   const [clientId, setClientId] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [notes, setNotes] = useState('')
   const [depositPercentage, setDepositPercentage] = useState(30)
   const [lines, setLines] = useState<QuoteLine[]>([])
   const [aiLoading, setAiLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    async function loadClients() {
+      try {
+        const res = await fetch('/api/clients')
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Erreur de chargement des clients')
+        if (active) setClients(json.data ?? [])
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : 'Erreur de chargement des clients')
+      } finally {
+        if (active) setClientsLoading(false)
+      }
+    }
+    loadClients()
+    return () => {
+      active = false
+    }
+  }, [])
 
   function addLine() {
     setLines((prev) => [
@@ -112,14 +143,56 @@ export default function NewQuotePage() {
   const totalTTC = subtotalHT + vatAmount
   const depositAmount = totalTTC * (depositPercentage / 100)
 
-  async function handleSave() {
+  async function handleSave(status: 'BROUILLON' | 'ENREGISTRE' = 'ENREGISTRE') {
+    setError(null)
+    if (!clientId) {
+      setError('Veuillez sélectionner un client')
+      return
+    }
+    if (!title.trim()) {
+      setError("L'intitulé du devis est obligatoire")
+      return
+    }
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    router.push('/app/quotes')
+    try {
+      const res = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          title: title.trim(),
+          description: description.trim() || undefined,
+          depositPercentage,
+          notes: notes.trim() || undefined,
+          lines: lines.map((l) => ({
+            label: l.label,
+            quantity: l.quantity,
+            unit: l.unit,
+            unitPriceHT: l.unitPriceHT,
+            vatRate: l.vatRate,
+            isLabor: l.isLabor,
+          })),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Erreur lors de la création du devis')
+      setToast(status === 'BROUILLON' ? 'Brouillon enregistré' : 'Devis enregistré')
+      setTimeout(() => router.push('/app/quotes'), 700)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur lors de la création du devis')
+      setSaving(false)
+    }
   }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg text-sm flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4" />
+          {toast}
+        </div>
+      )}
+
       <Link href="/app/quotes" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-6">
         <ArrowLeft className="h-4 w-4" />Retour aux devis
       </Link>
@@ -128,12 +201,18 @@ export default function NewQuotePage() {
         <h1 className="text-2xl font-bold text-gray-900">Nouveau devis</h1>
       </div>
 
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
       {/* Génération IA */}
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="h-5 w-5 text-blue-600" />
           <h2 className="text-sm font-semibold text-blue-900">Copilote IA — Génération automatique</h2>
-          <span className="text-xs text-blue-500">(simulation)</span>
         </div>
         <p className="text-xs text-blue-700 mb-3">Choisissez un type de chantier et le copilote génère automatiquement vos lignes de devis :</p>
         <div className="flex flex-wrap gap-2">
@@ -166,13 +245,20 @@ export default function NewQuotePage() {
                 <select
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  disabled={clientsLoading}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50"
                 >
-                  <option value="">Sélectionner un client</option>
-                  {MOCK_CLIENTS.map((c) => (
+                  <option value="">{clientsLoading ? 'Chargement des clients...' : 'Sélectionner un client'}</option>
+                  {clients.map((c) => (
                     <option key={c.id} value={c.id}>{c.firstName} {c.lastName} — {c.city}</option>
                   ))}
                 </select>
+                {!clientsLoading && clients.length === 0 && (
+                  <p className="mt-1.5 text-xs text-gray-400">
+                    Aucun client.{' '}
+                    <Link href="/app/clients/new" className="text-blue-600 hover:underline">Créer un client</Link>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Intitulé du devis *</label>
@@ -194,6 +280,16 @@ export default function NewQuotePage() {
                   placeholder="Description des travaux..."
                 />
               </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Notes internes (optionnel)</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Notes visibles uniquement par vous..."
+                />
+              </div>
             </div>
           </div>
 
@@ -211,7 +307,6 @@ export default function NewQuotePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Headers */}
                 <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 px-1">
                   <div className="col-span-4">Description</div>
                   <div className="col-span-2">Qté</div>
@@ -316,19 +411,19 @@ export default function NewQuotePage() {
 
           <div className="space-y-2">
             <button
-              onClick={handleSave}
+              onClick={() => handleSave('ENREGISTRE')}
               disabled={saving || !clientId || !title}
               className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Enregistrement...</> : 'Enregistrer le devis'}
             </button>
-            <button className="w-full rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={() => handleSave('BROUILLON')}
+              disabled={saving || !clientId || !title}
+              className="w-full rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
               Enregistrer en brouillon
             </button>
-          </div>
-
-          <div className="rounded-lg bg-amber-50 border border-amber-100 p-3">
-            <p className="text-xs text-amber-700">⚠ Simulation — Aucun vrai devis envoyé</p>
           </div>
         </div>
       </div>

@@ -1,189 +1,51 @@
 // ECOPYE Pro Chantier - Schéma Prisma
-// Base de données PostgreSQL
+// SQLite en dev (DATABASE_URL=file:./dev.db).
+//
+// NOTES IMPORTANTES :
+// - Prisma n'autorise pas env() dans `provider` (erreur P1012) : le provider
+//   doit être un littéral. Pour la prod PostgreSQL, basculer `provider` sur
+//   "postgresql" (idéalement via un schema.prod.prisma dédié au déploiement).
+// - SQLite ne supporte pas les enum natifs : les anciens enums sont stockés
+//   en String. Les valeurs textuelles sont inchangées (ex: "OWNER",
+//   "ESSAI", ...), donc le code applicatif reste compatible.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ================================
-// ÉNUMÉRATIONS
+// VALEURS (anciennement enums, désormais String)
 // ================================
-
-enum Role {
-  OWNER
-  ADMIN_COMPANY
-  TECHNICIAN
-  CLIENT
-  ECOPYE_ADMIN
-}
-
-enum Trade {
-  PLOMBIER
-  CHAUFFAGISTE
-  ELECTRICIEN
-  RENOVATION_SALLE_DE_BAIN
-  MACON
-  PEINTRE
-  CARRELEUR
-  MENUISIER
-  MULTI_SERVICES
-  ENTREPRISE_GENERALE_BTP
-}
-
-enum ClientType {
-  PARTICULIER
-  PROFESSIONNEL
-}
-
-enum QuoteStatus {
-  BROUILLON
-  ENVOYE
-  VU
-  ACCEPTE
-  REFUSE
-  EXPIRE
-}
-
-enum InvoiceType {
-  ACOMPTE
-  INTERMEDIAIRE
-  FINALE
-  AVOIR
-}
-
-enum InvoiceStatus {
-  BROUILLON
-  ENVOYEE
-  EN_ATTENTE
-  PAYEE
-  EN_RETARD
-  ANNULEE
-}
-
-enum PaymentStatus {
-  EN_ATTENTE
-  REUSSI
-  REFUSE
-  EXPIRE
-  REMBOURSE
-}
-
-enum PaymentMethod {
-  VIREMENT
-  CHEQUE
-  CARTE_BANCAIRE
-  ESPECES
-  PRELEVEMENT
-}
-
-enum ProjectStatus {
-  PREPARATION
-  EN_ATTENTE_ACOMPTE
-  EN_COURS
-  CONTROLE_QUALITE
-  RECEPTION_CLIENT
-  TERMINE
-  LITIGE_POTENTIEL
-  ANNULE
-}
-
-enum ProjectStepStatus {
-  EN_ATTENTE
-  EN_COURS
-  TERMINE
-  VALIDE_CLIENT
-  PROBLEME
-}
-
-enum RiskLevel {
-  FAIBLE
-  MOYEN
-  ELEVE
-  CRITIQUE
-}
-
-enum PhotoCategory {
-  AVANT
-  PENDANT
-  APRES
-  PROBLEME
-  DETAIL
-  RECEPTION
-}
-
-enum DocumentType {
-  ASSURANCE_DECENNALE
-  RESPONSABILITE_CIVILE
-  ATTESTATION_URSSAF
-  PV_RECEPTION
-  BON_INTERVENTION
-  BON_LIVRAISON
-  CONDITIONS_GENERALES
-  CHECKLIST_SECURITE
-  RAPPORT_CHANTIER
-  DOSSIER_LITIGE
-  AUTRE
-}
-
-enum DocumentStatus {
-  VALIDE
-  EXPIRE_BIENTOT
-  EXPIRE
-  MANQUANT
-}
-
-enum ScheduleStatus {
-  PLANIFIE
-  EN_COURS
-  TERMINE
-  ANNULE
-  REPORTE
-}
-
-enum AiRequestType {
-  GENERER_DEVIS
-  REDIGER_RELANCE
-  RESUMER_CHANTIER
-  PREPARER_COMPTE_RENDU
-  ANALYSER_BUDGET
-  PREPARER_LITIGE
-  MESSAGE_WHATSAPP
-  EMAIL_PROFESSIONNEL
-  CHECKLIST_CHANTIER
-}
-
-enum TicketStatus {
-  OUVERT
-  EN_COURS
-  RESOLU
-  FERME
-}
-
-enum TicketPriority {
-  FAIBLE
-  NORMAL
-  ELEVE
-  URGENT
-}
-
-enum SubscriptionPlan {
-  STARTER
-  PRO
-  PREMIUM
-  ENTREPRISE
-}
-
-enum SubscriptionStatus {
-  ACTIF
-  SUSPENDU
-  ANNULE
-  ESSAI
-}
+// Role:               OWNER | ADMIN_COMPANY | TECHNICIAN | CLIENT | ECOPYE_ADMIN
+// Trade:              PLOMBIER | CHAUFFAGISTE | ELECTRICIEN | RENOVATION_SALLE_DE_BAIN |
+//                     MACON | PEINTRE | CARRELEUR | MENUISIER | MULTI_SERVICES | ENTREPRISE_GENERALE_BTP
+// ClientType:         PARTICULIER | PROFESSIONNEL
+// QuoteStatus:        BROUILLON | ENVOYE | VU | ACCEPTE | REFUSE | EXPIRE
+// InvoiceType:        ACOMPTE | INTERMEDIAIRE | FINALE | AVOIR
+// InvoiceStatus:      BROUILLON | ENVOYEE | EN_ATTENTE | PAYEE | EN_RETARD | ANNULEE
+// PaymentStatus:      EN_ATTENTE | REUSSI | REFUSE | EXPIRE | REMBOURSE
+// PaymentMethod:      VIREMENT | CHEQUE | CARTE_BANCAIRE | ESPECES | PRELEVEMENT
+// ProjectStatus:      PREPARATION | EN_ATTENTE_ACOMPTE | EN_COURS | CONTROLE_QUALITE |
+//                     RECEPTION_CLIENT | TERMINE | LITIGE_POTENTIEL | ANNULE
+// ProjectStepStatus:  EN_ATTENTE | EN_COURS | TERMINE | VALIDE_CLIENT | PROBLEME
+// RiskLevel:          FAIBLE | MOYEN | ELEVE | CRITIQUE
+// PhotoCategory:      AVANT | PENDANT | APRES | PROBLEME | DETAIL | RECEPTION
+// DocumentType:       ASSURANCE_DECENNALE | RESPONSABILITE_CIVILE | ATTESTATION_URSSAF |
+//                     PV_RECEPTION | BON_INTERVENTION | BON_LIVRAISON | CONDITIONS_GENERALES |
+//                     CHECKLIST_SECURITE | RAPPORT_CHANTIER | DOSSIER_LITIGE | AUTRE
+// DocumentStatus:     VALIDE | EXPIRE_BIENTOT | EXPIRE | MANQUANT
+// ScheduleStatus:     PLANIFIE | EN_COURS | TERMINE | ANNULE | REPORTE
+// AiRequestType:      GENERER_DEVIS | REDIGER_RELANCE | RESUMER_CHANTIER | PREPARER_COMPTE_RENDU |
+//                     ANALYSER_BUDGET | PREPARER_LITIGE | MESSAGE_WHATSAPP | EMAIL_PROFESSIONNEL | CHECKLIST_CHANTIER
+// TicketStatus:       OUVERT | EN_COURS | RESOLU | FERME
+// TicketPriority:     FAIBLE | NORMAL | ELEVE | URGENT
+// SubscriptionPlan:   STARTER | PRO | PREMIUM | ENTREPRISE
+// SubscriptionStatus: ACTIF | SUSPENDU | ANNULE | ESSAI
 
 // ================================
 // MODÈLES
@@ -194,7 +56,7 @@ model User {
   name         String
   email        String    @unique
   passwordHash String
-  role         Role      @default(TECHNICIAN)
+  role         String    @default("TECHNICIAN")
   companyId    String?
   company      Company?  @relation(fields: [companyId], references: [id])
   active       Boolean   @default(true)
@@ -215,7 +77,7 @@ model Company {
   name                  String
   ownerName             String
   siret                 String    @unique
-  trade                 Trade     @default(MULTI_SERVICES)
+  trade                 String    @default("MULTI_SERVICES")
   address               String
   city                  String
   postalCode            String
@@ -251,7 +113,7 @@ model Client {
   id          String     @id @default(cuid())
   companyId   String
   company     Company    @relation(fields: [companyId], references: [id])
-  type        ClientType @default(PARTICULIER)
+  type        String     @default("PARTICULIER")
   firstName   String
   lastName    String
   companyName String?
@@ -285,7 +147,7 @@ model Quote {
   number            String      @unique
   title             String
   description       String?
-  status            QuoteStatus @default(BROUILLON)
+  status            String      @default("BROUILLON")
   subtotalHT        Float       @default(0)
   vatAmount         Float       @default(0)
   totalTTC          Float       @default(0)
@@ -340,8 +202,8 @@ model Invoice {
   projectId    String?
   project      Project?      @relation(fields: [projectId], references: [id])
   number       String        @unique
-  type         InvoiceType   @default(FINALE)
-  status       InvoiceStatus @default(BROUILLON)
+  type         String        @default("FINALE")
+  status       String        @default("BROUILLON")
   subtotalHT   Float         @default(0)
   vatAmount    Float         @default(0)
   totalTTC     Float         @default(0)
@@ -386,8 +248,8 @@ model Payment {
   invoiceId     String?
   invoice       Invoice?      @relation(fields: [invoiceId], references: [id])
   amount        Float
-  status        PaymentStatus @default(EN_ATTENTE)
-  method        PaymentMethod @default(VIREMENT)
+  status        String        @default("EN_ATTENTE")
+  method        String        @default("VIREMENT")
   paymentLink   String?
   qrCodeValue   String?
   receiptNumber String?
@@ -415,13 +277,13 @@ model Project {
   address       String
   city          String
   postalCode    String
-  status        ProjectStatus @default(PREPARATION)
+  status        String        @default("PREPARATION")
   plannedBudget Float         @default(0)
   actualBudget  Float         @default(0)
   startDate     DateTime?
   endDate       DateTime?
   progress      Int           @default(0)
-  riskLevel     RiskLevel     @default(FAIBLE)
+  riskLevel     String        @default("FAIBLE")
   notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -443,7 +305,7 @@ model ProjectStep {
   project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  status      ProjectStepStatus @default(EN_ATTENTE)
+  status      String            @default("EN_ATTENTE")
   order       Int               @default(0)
   dueDate     DateTime?
   completedAt DateTime?
@@ -470,7 +332,7 @@ model PhotoProof {
   project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedById String
   uploadedBy   User          @relation(fields: [uploadedById], references: [id])
-  category     PhotoCategory @default(PENDANT)
+  category     String        @default("PENDANT")
   url          String
   caption      String?
   takenAt      DateTime      @default(now())
@@ -487,9 +349,9 @@ model Document {
   project   Project?       @relation(fields: [projectId], references: [id])
   clientId  String?
   client    Client?        @relation(fields: [clientId], references: [id])
-  type      DocumentType   @default(AUTRE)
+  type      String         @default("AUTRE")
   title     String
-  status    DocumentStatus @default(VALIDE)
+  status    String         @default("VALIDE")
   fileUrl   String?
   expiresAt DateTime?
   notes     String?
@@ -506,7 +368,7 @@ model Technician {
   name      String
   email     String
   phone     String?
-  trade     Trade    @default(MULTI_SERVICES)
+  trade     String   @default("MULTI_SERVICES")
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -531,7 +393,7 @@ model ScheduleEvent {
   description  String?
   startDate    DateTime
   endDate      DateTime
-  status       ScheduleStatus @default(PLANIFIE)
+  status       String         @default("PLANIFIE")
   location     String?
   color        String?        @default("#3b82f6")
   createdAt    DateTime       @default(now())
@@ -547,7 +409,7 @@ model AiRequest {
   company   Company       @relation(fields: [companyId], references: [id])
   userId    String
   user      User          @relation(fields: [userId], references: [id])
-  type      AiRequestType
+  type      String
   prompt    String
   response  String
   createdAt DateTime      @default(now())
@@ -562,8 +424,8 @@ model SupportTicket {
   userId    String
   user      User           @relation(fields: [userId], references: [id])
   subject   String
-  status    TicketStatus   @default(OUVERT)
-  priority  TicketPriority @default(NORMAL)
+  status    String         @default("OUVERT")
+  priority  String         @default("NORMAL")
   message   String
   response  String?
   createdAt DateTime       @default(now())
@@ -576,8 +438,8 @@ model Subscription {
   id           String             @id @default(cuid())
   companyId    String             @unique
   company      Company            @relation(fields: [companyId], references: [id])
-  plan         SubscriptionPlan   @default(STARTER)
-  status       SubscriptionStatus @default(ESSAI)
+  plan         String             @default("STARTER")
+  status       String             @default("ESSAI")
   monthlyPrice Float              @default(29)
   startedAt    DateTime           @default(now())
   endsAt       DateTime?

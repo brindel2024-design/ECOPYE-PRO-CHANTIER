@@ -89,7 +89,9 @@ type SuccessReceipt = {
 }
 
 export default function PaymentsPage() {
-  const pendingInvoices = MOCK_INVOICES.filter((i) => i.status !== 'PAYEE' && i.status !== 'ANNULEE')
+  const pendingInvoices = MOCK_INVOICES.filter(
+    (i) => i.status !== 'PAYEE' && (i.status as string) !== 'ANNULEE'
+  )
 
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(pendingInvoices[0]?.id ?? '')
   const [amount, setAmount] = useState(() => {

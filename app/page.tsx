@@ -18,7 +18,9 @@ import {
   Phone,
   Mail,
   MapPin,
+  Smartphone,
 } from 'lucide-react'
+import { PwaInstallButton } from '@/components/PwaInstallButton'
 
 const features = [
   {
@@ -219,6 +221,58 @@ export default function LandingPage() {
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-green-400" />Sans carte bancaire</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-green-400" />14 jours gratuits</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-green-400" />Annulable à tout moment</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Télécharger l'app */}
+      <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-8 text-center lg:flex-row lg:justify-between lg:text-left">
+            <div>
+              <div className="flex items-center justify-center gap-2 mb-3 lg:justify-start">
+                <Smartphone className="h-5 w-5 text-blue-200" />
+                <span className="text-sm font-semibold text-blue-200 uppercase tracking-wide">Application mobile</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white sm:text-3xl">
+                Gérez vos chantiers depuis votre téléphone
+              </h2>
+              <p className="mt-2 text-blue-100 text-sm max-w-lg">
+                Installez ECOPYE Pro Chantier directement sur votre smartphone — sans passer par un store.
+                Fonctionne sur Android et iPhone.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-4 lg:items-end">
+              <PwaInstallButton />
+              <div className="flex items-center gap-3">
+                {/* App Store badge - bientôt */}
+                <div className="relative group">
+                  <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 opacity-60 cursor-not-allowed select-none">
+                    <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    <div className="text-left">
+                      <p className="text-[10px] text-white/70 leading-none">Bientôt sur</p>
+                      <p className="text-xs font-semibold text-white leading-none mt-0.5">App Store</p>
+                    </div>
+                  </div>
+                  <span className="absolute -top-2 -right-2 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-amber-900 leading-none">Soon</span>
+                </div>
+                {/* Play Store badge - bientôt */}
+                <div className="relative group">
+                  <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 opacity-60 cursor-not-allowed select-none">
+                    <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3.18 23.76c.3.17.64.24.99.2L15.88 12 12 8.12 3.18 23.76zm17.62-11.3L17.92 11l-3.2 3.2 3.2 3.2 2.9-1.64c.82-.46.82-1.62-.02-2.1zM3.13.23C2.79-.01 2.4-.07 2.06.1L14 12 2.06 23.9c.34.17.73.11 1.07-.13L17.5 12 3.13.23zm9.75 9.89L3.18.24C2.89.07 2.55 0 2.2.04L14 11.88l-1.12-1.76z"/>
+                    </svg>
+                    <div className="text-left">
+                      <p className="text-[10px] text-white/70 leading-none">Bientôt sur</p>
+                      <p className="text-xs font-semibold text-white leading-none mt-0.5">Google Play</p>
+                    </div>
+                  </div>
+                  <span className="absolute -top-2 -right-2 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-amber-900 leading-none">Soon</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

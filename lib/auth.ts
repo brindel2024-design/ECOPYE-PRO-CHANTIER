@@ -7,23 +7,23 @@ import { prisma } from '@/lib/prisma'
 // (pour les captures d'écran / environnements sans base de données).
 const DEMO_USERS = [
   {
-    id: 'user-1',
+    id: 'cmp9mru7b0005jl54odrl68iu',
     name: 'Jean Durand',
     email: 'jean.durand@durand-renovation.fr',
     password: 'password123',
     role: 'OWNER',
-    companyId: 'company-1',
+    companyId: 'cmp9mrstz0000jl54dvih1g2x',
   },
   {
-    id: 'user-2',
+    id: 'cmp9mru7a0004jl54ymite7zk',
     name: 'Sarah Martin',
     email: 'sarah.martin@durand-renovation.fr',
     password: 'password123',
     role: 'ADMIN_COMPANY',
-    companyId: 'company-1',
+    companyId: 'cmp9mrstz0000jl54dvih1g2x',
   },
   {
-    id: 'admin-1',
+    id: 'cmp9mru7e0006jl54tnymo1ov',
     name: 'Admin ECOPYE',
     email: 'admin@ecopye.fr',
     password: 'admin123',

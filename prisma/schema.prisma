@@ -1,0 +1,587 @@
+// ECOPYE Pro Chantier - Schéma Prisma
+// Base de données PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================================
+// ÉNUMÉRATIONS
+// ================================
+
+enum Role {
+  OWNER
+  ADMIN_COMPANY
+  TECHNICIAN
+  CLIENT
+  ECOPYE_ADMIN
+}
+
+enum Trade {
+  PLOMBIER
+  CHAUFFAGISTE
+  ELECTRICIEN
+  RENOVATION_SALLE_DE_BAIN
+  MACON
+  PEINTRE
+  CARRELEUR
+  MENUISIER
+  MULTI_SERVICES
+  ENTREPRISE_GENERALE_BTP
+}
+
+enum ClientType {
+  PARTICULIER
+  PROFESSIONNEL
+}
+
+enum QuoteStatus {
+  BROUILLON
+  ENVOYE
+  VU
+  ACCEPTE
+  REFUSE
+  EXPIRE
+}
+
+enum InvoiceType {
+  ACOMPTE
+  INTERMEDIAIRE
+  FINALE
+  AVOIR
+}
+
+enum InvoiceStatus {
+  BROUILLON
+  ENVOYEE
+  EN_ATTENTE
+  PAYEE
+  EN_RETARD
+  ANNULEE
+}
+
+enum PaymentStatus {
+  EN_ATTENTE
+  REUSSI
+  REFUSE
+  EXPIRE
+  REMBOURSE
+}
+
+enum PaymentMethod {
+  VIREMENT
+  CHEQUE
+  CARTE_BANCAIRE
+  ESPECES
+  PRELEVEMENT
+}
+
+enum ProjectStatus {
+  PREPARATION
+  EN_ATTENTE_ACOMPTE
+  EN_COURS
+  CONTROLE_QUALITE
+  RECEPTION_CLIENT
+  TERMINE
+  LITIGE_POTENTIEL
+  ANNULE
+}
+
+enum ProjectStepStatus {
+  EN_ATTENTE
+  EN_COURS
+  TERMINE
+  VALIDE_CLIENT
+  PROBLEME
+}
+
+enum RiskLevel {
+  FAIBLE
+  MOYEN
+  ELEVE
+  CRITIQUE
+}
+
+enum PhotoCategory {
+  AVANT
+  PENDANT
+  APRES
+  PROBLEME
+  DETAIL
+  RECEPTION
+}
+
+enum DocumentType {
+  ASSURANCE_DECENNALE
+  RESPONSABILITE_CIVILE
+  ATTESTATION_URSSAF
+  PV_RECEPTION
+  BON_INTERVENTION
+  BON_LIVRAISON
+  CONDITIONS_GENERALES
+  CHECKLIST_SECURITE
+  RAPPORT_CHANTIER
+  DOSSIER_LITIGE
+  AUTRE
+}
+
+enum DocumentStatus {
+  VALIDE
+  EXPIRE_BIENTOT
+  EXPIRE
+  MANQUANT
+}
+
+enum ScheduleStatus {
+  PLANIFIE
+  EN_COURS
+  TERMINE
+  ANNULE
+  REPORTE
+}
+
+enum AiRequestType {
+  GENERER_DEVIS
+  REDIGER_RELANCE
+  RESUMER_CHANTIER
+  PREPARER_COMPTE_RENDU
+  ANALYSER_BUDGET
+  PREPARER_LITIGE
+  MESSAGE_WHATSAPP
+  EMAIL_PROFESSIONNEL
+  CHECKLIST_CHANTIER
+}
+
+enum TicketStatus {
+  OUVERT
+  EN_COURS
+  RESOLU
+  FERME
+}
+
+enum TicketPriority {
+  FAIBLE
+  NORMAL
+  ELEVE
+  URGENT
+}
+
+enum SubscriptionPlan {
+  STARTER
+  PRO
+  PREMIUM
+  ENTREPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIF
+  SUSPENDU
+  ANNULE
+  ESSAI
+}
+
+// ================================
+// MODÈLES
+// ================================
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(TECHNICIAN)
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id])
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  photoUploads PhotoProof[]
+  aiRequests   AiRequest[]
+  tickets      SupportTicket[]
+  scheduleEvents ScheduleEvent[]
+
+  @@index([email])
+  @@index([companyId])
+}
+
+model Company {
+  id                    String    @id @default(cuid())
+  name                  String
+  ownerName             String
+  siret                 String    @unique
+  trade                 Trade     @default(MULTI_SERVICES)
+  address               String
+  city                  String
+  postalCode            String
+  phone                 String
+  email                 String
+  vatNumber             String?
+  insuranceNumber       String?
+  insuranceExpiryDate   DateTime?
+  logoUrl               String?
+  monthlyRevenueTarget  Float     @default(0)
+  active                Boolean   @default(true)
+  onboardingCompleted   Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  users          User[]
+  clients        Client[]
+  quotes         Quote[]
+  invoices       Invoice[]
+  payments       Payment[]
+  projects       Project[]
+  documents      Document[]
+  scheduleEvents ScheduleEvent[]
+  technicians    Technician[]
+  aiRequests     AiRequest[]
+  tickets        SupportTicket[]
+  subscription   Subscription?
+
+  @@index([siret])
+}
+
+model Client {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id])
+  type        ClientType @default(PARTICULIER)
+  firstName   String
+  lastName    String
+  companyName String?
+  email       String
+  phone       String
+  address     String
+  city        String
+  postalCode  String
+  notes       String?
+  trustScore  Int        @default(5)
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  quotes    Quote[]
+  invoices  Invoice[]
+  payments  Payment[]
+  projects  Project[]
+  documents Document[]
+
+  @@index([companyId])
+  @@index([email])
+}
+
+model Quote {
+  id                String      @id @default(cuid())
+  companyId         String
+  company           Company     @relation(fields: [companyId], references: [id])
+  clientId          String
+  client            Client      @relation(fields: [clientId], references: [id])
+  number            String      @unique
+  title             String
+  description       String?
+  status            QuoteStatus @default(BROUILLON)
+  subtotalHT        Float       @default(0)
+  vatAmount         Float       @default(0)
+  totalTTC          Float       @default(0)
+  depositPercentage Float       @default(30)
+  laborCost         Float       @default(0)
+  materialCost      Float       @default(0)
+  notes             String?
+  termsAndConditions String?
+  expiresAt         DateTime?
+  sentAt            DateTime?
+  viewedAt          DateTime?
+  acceptedAt        DateTime?
+  refusedAt         DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  lines     QuoteLine[]
+  invoices  Invoice[]
+  projects  Project[]
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([number])
+}
+
+model QuoteLine {
+  id           String  @id @default(cuid())
+  quoteId      String
+  quote        Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  label        String
+  description  String?
+  quantity     Float   @default(1)
+  unit         String  @default("forfait")
+  unitPriceHT  Float   @default(0)
+  vatRate      Float   @default(20)
+  discount     Float   @default(0)
+  totalHT      Float   @default(0)
+  order        Int     @default(0)
+  isLabor      Boolean @default(false)
+
+  @@index([quoteId])
+}
+
+model Invoice {
+  id           String        @id @default(cuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
+  clientId     String
+  client       Client        @relation(fields: [clientId], references: [id])
+  quoteId      String?
+  quote        Quote?        @relation(fields: [quoteId], references: [id])
+  projectId    String?
+  project      Project?      @relation(fields: [projectId], references: [id])
+  number       String        @unique
+  type         InvoiceType   @default(FINALE)
+  status       InvoiceStatus @default(BROUILLON)
+  subtotalHT   Float         @default(0)
+  vatAmount    Float         @default(0)
+  totalTTC     Float         @default(0)
+  amountPaid   Float         @default(0)
+  dueDate      DateTime?
+  issuedAt     DateTime      @default(now())
+  paidAt       DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  payments Payment[]
+  lines    InvoiceLine[]
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([number])
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  label       String
+  description String?
+  quantity    Float   @default(1)
+  unit        String  @default("forfait")
+  unitPriceHT Float   @default(0)
+  vatRate     Float   @default(20)
+  totalHT     Float   @default(0)
+  order       Int     @default(0)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  invoiceId     String?
+  invoice       Invoice?      @relation(fields: [invoiceId], references: [id])
+  amount        Float
+  status        PaymentStatus @default(EN_ATTENTE)
+  method        PaymentMethod @default(VIREMENT)
+  paymentLink   String?
+  qrCodeValue   String?
+  receiptNumber String?
+  notes         String?
+  simulatedAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([invoiceId])
+}
+
+model Project {
+  id            String        @id @default(cuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  quoteId       String?
+  quote         Quote?        @relation(fields: [quoteId], references: [id])
+  title         String
+  description   String?
+  address       String
+  city          String
+  postalCode    String
+  status        ProjectStatus @default(PREPARATION)
+  plannedBudget Float         @default(0)
+  actualBudget  Float         @default(0)
+  startDate     DateTime?
+  endDate       DateTime?
+  progress      Int           @default(0)
+  riskLevel     RiskLevel     @default(FAIBLE)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  steps      ProjectStep[]
+  photos     PhotoProof[]
+  invoices   Invoice[]
+  documents  Document[]
+  events     ScheduleEvent[]
+  technicians ProjectTechnician[]
+
+  @@index([companyId])
+  @@index([clientId])
+}
+
+model ProjectStep {
+  id          String            @id @default(cuid())
+  projectId   String
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      ProjectStepStatus @default(EN_ATTENTE)
+  order       Int               @default(0)
+  dueDate     DateTime?
+  completedAt DateTime?
+  validatedByClient Boolean    @default(false)
+  notes       String?
+
+  @@index([projectId])
+}
+
+model ProjectTechnician {
+  id           String     @id @default(cuid())
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technicianId String
+  technician   Technician @relation(fields: [technicianId], references: [id])
+  assignedAt   DateTime   @default(now())
+
+  @@unique([projectId, technicianId])
+}
+
+model PhotoProof {
+  id           String        @id @default(cuid())
+  projectId    String
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+  category     PhotoCategory @default(PENDANT)
+  url          String
+  caption      String?
+  takenAt      DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+
+  @@index([projectId])
+}
+
+model Document {
+  id        String         @id @default(cuid())
+  companyId String
+  company   Company        @relation(fields: [companyId], references: [id])
+  projectId String?
+  project   Project?       @relation(fields: [projectId], references: [id])
+  clientId  String?
+  client    Client?        @relation(fields: [clientId], references: [id])
+  type      DocumentType   @default(AUTRE)
+  title     String
+  status    DocumentStatus @default(VALIDE)
+  fileUrl   String?
+  expiresAt DateTime?
+  notes     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([companyId])
+}
+
+model Technician {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  name      String
+  email     String
+  phone     String?
+  trade     Trade    @default(MULTI_SERVICES)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scheduleEvents    ScheduleEvent[]
+  assignedProjects  ProjectTechnician[]
+
+  @@index([companyId])
+}
+
+model ScheduleEvent {
+  id           String         @id @default(cuid())
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id])
+  projectId    String?
+  project      Project?       @relation(fields: [projectId], references: [id])
+  technicianId String?
+  technician   Technician?    @relation(fields: [technicianId], references: [id])
+  userId       String?
+  user         User?          @relation(fields: [userId], references: [id])
+  title        String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime
+  status       ScheduleStatus @default(PLANIFIE)
+  location     String?
+  color        String?        @default("#3b82f6")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([companyId])
+  @@index([projectId])
+}
+
+model AiRequest {
+  id        String        @id @default(cuid())
+  companyId String
+  company   Company       @relation(fields: [companyId], references: [id])
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  type      AiRequestType
+  prompt    String
+  response  String
+  createdAt DateTime      @default(now())
+
+  @@index([companyId])
+}
+
+model SupportTicket {
+  id        String         @id @default(cuid())
+  companyId String
+  company   Company        @relation(fields: [companyId], references: [id])
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  subject   String
+  status    TicketStatus   @default(OUVERT)
+  priority  TicketPriority @default(NORMAL)
+  message   String
+  response  String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([companyId])
+}
+
+model Subscription {
+  id           String             @id @default(cuid())
+  companyId    String             @unique
+  company      Company            @relation(fields: [companyId], references: [id])
+  plan         SubscriptionPlan   @default(STARTER)
+  status       SubscriptionStatus @default(ESSAI)
+  monthlyPrice Float              @default(29)
+  startedAt    DateTime           @default(now())
+  endsAt       DateTime?
+  trialEndsAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}

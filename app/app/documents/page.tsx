@@ -132,11 +132,8 @@ export default function DocumentsPage() {
           <p className="text-sm text-gray-500 mt-0.5">Gérez vos documents légaux et certifications</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-            ⚠ Simulation — données fictives
-          </span>
           <button
-            onClick={() => showToast('Simulation — fonctionnalité disponible en version PRO')}
+            onClick={() => showToast('Fonctionnalité disponible en version PRO')}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             <Upload className="h-4 w-4" />
@@ -241,7 +238,7 @@ export default function DocumentsPage() {
                       <button
                         disabled
                         className="flex items-center gap-1 text-xs text-gray-400 cursor-not-allowed"
-                        title="Simulation"
+                        title="Version PRO"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         Voir
@@ -249,14 +246,14 @@ export default function DocumentsPage() {
                       <button
                         disabled
                         className="flex items-center gap-1 text-xs text-gray-400 cursor-not-allowed"
-                        title="Simulation"
+                        title="Version PRO"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Télécharger
                       </button>
                       {(doc.status === 'EXPIRE' || doc.status === 'EXPIRE_BIENTOT') && (
                         <button
-                          onClick={() => showToast('Simulation — fonctionnalité disponible en version PRO')}
+                          onClick={() => showToast('Fonctionnalité disponible en version PRO')}
                           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
@@ -299,7 +296,7 @@ export default function DocumentsPage() {
           ))}
         </div>
         <button
-          onClick={() => showToast('Simulation — fonctionnalité disponible en version PRO')}
+          onClick={() => showToast('Fonctionnalité disponible en version PRO')}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           Gérer mes certifications

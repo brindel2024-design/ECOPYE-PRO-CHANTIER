@@ -124,12 +124,6 @@ export function Sidebar({ onClose }: SidebarProps) {
           )
         })}
 
-        {/* Alerte simulation */}
-        <div className="mx-1 my-2 rounded-lg bg-amber-900/30 border border-amber-700/30 px-3 py-2">
-          <p className="text-xs text-amber-400 font-medium">⚠ Mode démonstration</p>
-          <p className="text-xs text-amber-300/70 mt-0.5">Données fictives — aucun paiement réel</p>
-        </div>
-
         {/* Déconnexion */}
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}

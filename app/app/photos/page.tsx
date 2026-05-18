@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, Download, AlertTriangle, Camera } from 'lucide-react'
+import { Upload, Download, Camera } from 'lucide-react'
 import { MOCK_PROJECTS } from '@/lib/mock-data'
 import { formatDate } from '@/lib/utils'
 
@@ -78,12 +78,8 @@ export default function PhotosPage() {
           <p className="text-sm text-gray-500 mt-0.5">{MOCK_PHOTOS.length} photos au total</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-            <AlertTriangle className="h-3 w-3" />
-            Simulation — données fictives
-          </span>
           <button
-            onClick={() => alert('Simulation — fonctionnalité non disponible')}
+            onClick={() => alert('Téléversement disponible en version PRO')}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <Upload className="h-4 w-4" />
@@ -161,7 +157,7 @@ export default function PhotosPage() {
                       {CATEGORY_LABELS[photo.category]}
                     </span>
                     <button
-                      onClick={() => alert('Simulation — téléchargement non disponible')}
+                      onClick={() => alert('Téléchargement disponible en version PRO')}
                       className="text-gray-400 hover:text-gray-600 transition-colors"
                       title="Télécharger"
                     >

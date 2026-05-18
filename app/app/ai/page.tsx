@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Bot,
   FileText,
@@ -17,124 +17,6 @@ import {
   LucideIcon,
 } from 'lucide-react'
 import { AiRequestType } from '@/lib/types'
-
-const MOCK_RESPONSES: Record<AiRequestType, string> = {
-  GENERER_DEVIS: `DEVIS SIMULÉ — Rénovation Salle de Bain 7m²
-
-1. Démolition et évacuation (7m²) — 450 € HT
-2. Étanchéité sous carrelage (SPEC 90) — 680 € HT
-3. Fourniture et pose carrelage sol 60x60 — 1 260 € HT
-4. Fourniture et pose carrelage mural — 1 440 € HT
-5. Douche italienne 90x90 avec receveur — 890 € HT
-6. Double vasque encastrée 120cm + robinetterie — 1 200 € HT
-7. Plomberie et raccordements — 780 € HT
-8. Électricité (spots, VMC, chauffage) — 540 € HT
-9. Finitions et nettoyage — 280 € HT
-
-Sous-total HT : 7 520 €
-TVA 20% : 1 504 €
-Total TTC : 9 024 €
-Acompte 30% à la signature : 2 707 €
-
-Délai d'exécution estimé : 8-10 jours ouvrés
-Validité du devis : 30 jours`,
-
-  REDIGER_RELANCE: `Objet : Rappel — Facture FAC-2024-0003 échue depuis 35 jours
-
-Madame Moreau,
-
-Je me permets de revenir vers vous concernant la facture n°FAC-2024-0003
-d'un montant de 3 840 € TTC, dont l'échéance était fixée au 05/06/2024.
-
-À ce jour, nous n'avons pas reçu votre règlement, et il semblerait que
-cette facture soit passée inaperçue.
-
-Pourriez-vous procéder au règlement dans les meilleurs délais par virement
-sur notre compte IBAN FR76 3000 6000 0112 3456 7890 189 ?
-
-En cas de difficulté, n'hésitez pas à me contacter au 04 78 12 34 56 afin
-que nous puissions trouver une solution amiable.
-
-Cordialement,
-Jean Durand — Durand Rénovation Services`,
-
-  RESUMER_CHANTIER: `RÉSUMÉ CHANTIER — Rénovation SDB Marie Laurent
-État au 25/06/2024
-
-✅ Étapes terminées (4/10) :
-- Devis signé et acompte encaissé
-- Préparation et installation de chantier
-- Dépose ancienne installation
-- Travaux d'étanchéité validés
-
-🔄 En cours :
-- Plomberie et raccordements eau (75% avancé)
-- Retard estimé : 0 jour
-
-⏳ À venir :
-- Pose carrelage sol et mural (J+3)
-- Installation équipements sanitaires (J+6)
-- Finitions et nettoyage (J+8)
-- Réception client prévue le 05/07/2024
-
-💰 Budget :
-- Prévu : 10 200 € TTC
-- Réalisé à date : 8 900 €
-- Écart favorable : -1 300 € (dans les objectifs)
-
-⚠ Points d'attention : Aucun`,
-
-  PREPARER_COMPTE_RENDU: `✅ Réponse IA générée (simulation)
-
-[Contenu généré en fonction de votre demande. En production, l'IA analyserait votre contexte et générerait une réponse personnalisée adaptée à votre activité BTP.]`,
-
-  ANALYSER_BUDGET: `✅ Réponse IA générée (simulation)
-
-[Contenu généré en fonction de votre demande. En production, l'IA analyserait votre contexte et générerait une réponse personnalisée adaptée à votre activité BTP.]`,
-
-  PREPARER_LITIGE: `✅ Réponse IA générée (simulation)
-
-[Contenu généré en fonction de votre demande. En production, l'IA analyserait votre contexte et générerait une réponse personnalisée adaptée à votre activité BTP.]`,
-
-  MESSAGE_WHATSAPP: `✅ Réponse IA générée (simulation)
-
-[Contenu généré en fonction de votre demande. En production, l'IA analyserait votre contexte et générerait une réponse personnalisée adaptée à votre activité BTP.]`,
-
-  EMAIL_PROFESSIONNEL: `✅ Réponse IA générée (simulation)
-
-[Contenu généré en fonction de votre demande. En production, l'IA analyserait votre contexte et générerait une réponse personnalisée adaptée à votre activité BTP.]`,
-
-  CHECKLIST_CHANTIER: `CHECKLIST — Rénovation Salle de Bain
-
-AVANT DÉMARRAGE ✅
-☐ EPI vérifiés (casque, lunettes, gants, chaussures de sécurité)
-☐ Zone de travail balisée et protégée
-☐ Coupure eau vérifiée et affichée
-☐ Matériaux commandés et livrés
-☐ Acompte encaissé
-
-DÉMOLITION
-☐ Protection revêtements adjacents
-☐ Dépose robinetterie et sanitaires anciens
-☐ Évacuation décombres en benne agréée
-
-PLOMBERIE
-☐ Vérification pression réseau (>3 bars)
-☐ Raccordements eau froide/chaude conformes
-☐ Test étanchéité 24h avant carrelage
-☐ Mise aux normes évacuations
-
-CARRELAGE
-☐ Test planéité support (< 3mm/2m)
-☐ Calepinage validé client
-☐ Joints réalisés selon DTU 52.2
-
-RÉCEPTION
-☐ Nettoyage complet chantier
-☐ Notice utilisation remise client
-☐ PV réception signé
-☐ Solde facturé`,
-}
 
 interface AiCard {
   type: AiRequestType
@@ -230,11 +112,23 @@ const AI_CARDS: AiCard[] = [
   },
 ]
 
-const MOCK_HISTORY = [
-  { type: 'Rédiger une relance', time: 'il y a 2h', excerpt: 'Relance FAC-2024-0003...' },
-  { type: 'Générer un devis', time: 'hier', excerpt: 'Rénovation SDB 7m²...' },
-  { type: 'Checklist chantier', time: 'il y a 3j', excerpt: 'Salle de bain particulier...' },
-]
+interface HistoryItem {
+  id: string
+  type: AiRequestType
+  prompt: string
+  createdAt: string
+}
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return "à l'instant"
+  if (min < 60) return `il y a ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `il y a ${h} h`
+  const d = Math.floor(h / 24)
+  return `il y a ${d} j`
+}
 
 export default function AiPage() {
   const [activeCard, setActiveCard] = useState<AiCard | null>(null)
@@ -242,6 +136,26 @@ export default function AiPage() {
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  const titleByType = (t: AiRequestType) =>
+    AI_CARDS.find((c) => c.type === t)?.title ?? t
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ai')
+      if (res.ok) {
+        const json = await res.json()
+        setHistory(json.data ?? [])
+      }
+    } catch {
+      /* historique non bloquant */
+    }
+  }, [])
+
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
 
   const ActiveIcon = activeCard?.icon ?? null
 
@@ -257,14 +171,28 @@ export default function AiPage() {
     setLoading(false)
   }
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!activeCard || !prompt.trim()) return
     setLoading(true)
     setResponse(null)
-    setTimeout(() => {
-      setResponse(MOCK_RESPONSES[activeCard.type])
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: activeCard.type, prompt: prompt.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        showToast(json?.error || "Erreur de l'assistant IA")
+        return
+      }
+      setResponse(json.data)
+      loadHistory()
+    } catch {
+      showToast('Connexion à l’assistant IA impossible')
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
   const handleCopy = (text: string) => {
@@ -281,9 +209,6 @@ export default function AiPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Copilote IA</h1>
         </div>
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-          ⚠ Simulation — données fictives
-        </span>
       </div>
 
       {/* Intro banner */}
@@ -383,7 +308,7 @@ export default function AiPage() {
 
       {/* History section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Historique des utilisations (simulation)</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Historique des utilisations</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -395,17 +320,29 @@ export default function AiPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {MOCK_HISTORY.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="py-3 pr-4 font-medium text-gray-900">{item.type}</td>
+              {history.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-6 text-center text-gray-400">
+                    Aucune génération pour le moment
+                  </td>
+                </tr>
+              )}
+              {history.map((item) => (
+                <tr key={item.id}>
+                  <td className="py-3 pr-4 font-medium text-gray-900">{titleByType(item.type)}</td>
                   <td className="py-3 pr-4 text-gray-500 flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5" />
-                    {item.time}
+                    {relativeTime(item.createdAt)}
                   </td>
-                  <td className="py-3 pr-4 text-gray-600">{item.excerpt}</td>
+                  <td className="py-3 pr-4 text-gray-600">
+                    {item.prompt.length > 60 ? `${item.prompt.slice(0, 60)}…` : item.prompt}
+                  </td>
                   <td className="py-3">
                     <button
-                      onClick={() => showToast('Copié dans le presse-papier')}
+                      onClick={() => {
+                        navigator.clipboard.writeText(item.prompt)
+                        showToast('Demande copiée')
+                      }}
                       className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
                     >
                       <Copy className="h-3.5 w-3.5" />

@@ -257,9 +257,6 @@ export default function RegisterPage() {
             </>
           )}
 
-          <div className="mt-4 text-center">
-            <p className="text-xs text-amber-600">⚠ Prototype — Données fictives</p>
-          </div>
         </div>
 
         <div className="mt-4 text-center">

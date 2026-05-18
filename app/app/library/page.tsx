@@ -90,7 +90,7 @@ export default function LibraryPage() {
     setTimeout(() => setToast(null), 2000)
   }
 
-  const simToast = () => showToast('Simulation — fonctionnalité disponible en version PRO')
+  const simToast = () => showToast('Fonctionnalité disponible en version PRO')
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -102,9 +102,6 @@ export default function LibraryPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Bibliothèque Technique</h1>
         </div>
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-          ⚠ Simulation — données fictives
-        </span>
       </div>
 
       {/* Search bar */}

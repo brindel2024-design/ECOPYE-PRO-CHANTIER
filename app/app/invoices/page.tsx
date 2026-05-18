@@ -46,9 +46,15 @@ export default function InvoicesPage() {
   const totalRetard = invoices.filter(i => i.status === 'EN_RETARD').reduce((s, i) => s + (i.totalTTC - i.amountPaid), 0)
 
   async function handleRelance(id: string, number: string) {
-    await fetch(`/api/invoices/${id}/send`, { method: 'POST' }).catch(() => {})
-    setToast(`Relance envoyée pour ${number}`)
-    setTimeout(() => setToast(null), 3000)
+    setToast(`Envoi de la relance ${number}…`)
+    try {
+      const res = await fetch(`/api/invoices/${id}/relance`, { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      setToast(res.ok ? `Relance envoyée par email pour ${number}` : (json.error || `Échec de la relance ${number}`))
+    } catch {
+      setToast(`Échec de la relance ${number}`)
+    }
+    setTimeout(() => setToast(null), 4000)
   }
 
   return (

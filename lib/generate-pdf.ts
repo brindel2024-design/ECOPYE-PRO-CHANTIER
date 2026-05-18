@@ -252,3 +252,138 @@ export async function generateInvoicePdf(invoice: {
 
   doc.save(`Facture-${invoice.number}.pdf`)
 }
+
+export async function generateProjectReportPdf(project: {
+  title: string
+  description?: string | null
+  status: string
+  progress: number
+  address: string
+  city: string
+  postalCode: string
+  plannedBudget: number
+  actualBudget: number
+  startDate?: string | null
+  endDate?: string | null
+  notes?: string | null
+  client?: { firstName: string; lastName: string; phone: string; city: string } | null
+  company: { name: string; siret: string; address: string; city: string; phone: string }
+  steps: { title: string; status: string; validatedByClient: boolean }[]
+}) {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+  const blue = [37, 99, 235] as [number, number, number]
+  const gray = [107, 114, 128] as [number, number, number]
+  const dark = [17, 24, 39] as [number, number, number]
+  const euro = (n: number) =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
+
+  doc.setFillColor(...blue)
+  doc.rect(0, 0, 210, 35, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.text('ECOPYE Pro Chantier', 15, 14)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.text('RAPPORT DE CHANTIER', 15, 23)
+  doc.text(`Édité le : ${new Date().toLocaleDateString('fr-FR')}`, 15, 30)
+
+  doc.setTextColor(...dark)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.text(project.company.name, 15, 50)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...gray)
+  doc.text(`SIRET : ${project.company.siret}`, 15, 56)
+  doc.text(project.company.phone, 15, 61)
+
+  if (project.client) {
+    doc.setFillColor(248, 250, 252)
+    doc.rect(120, 43, 75, 30, 'F')
+    doc.setTextColor(...dark)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.text('CLIENT', 125, 51)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...gray)
+    doc.text(`${project.client.firstName} ${project.client.lastName}`, 125, 58)
+    doc.text(project.client.phone, 125, 63)
+    doc.text(project.client.city, 125, 68)
+  }
+
+  doc.setTextColor(...dark)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text(project.title, 15, 88)
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...gray)
+  let y = 96
+  doc.text(`Adresse : ${project.address}, ${project.postalCode} ${project.city}`, 15, y)
+  y += 6
+  doc.text(`Statut : ${project.status}`, 15, y)
+  doc.text(`Avancement : ${project.progress}%`, 100, y)
+  y += 6
+  const period = `${project.startDate ? new Date(project.startDate).toLocaleDateString('fr-FR') : '—'} → ${project.endDate ? new Date(project.endDate).toLocaleDateString('fr-FR') : '—'}`
+  doc.text(`Période : ${period}`, 15, y)
+  y += 6
+  doc.text(`Budget prévu : ${euro(project.plannedBudget)}`, 15, y)
+  doc.text(`Réalisé : ${project.actualBudget > 0 ? euro(project.actualBudget) : '—'}`, 100, y)
+
+  if (project.description) {
+    y += 10
+    doc.setTextColor(...dark)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Description', 15, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...gray)
+    y += 6
+    doc.text(doc.splitTextToSize(project.description, 180), 15, y)
+    y += Math.min(doc.splitTextToSize(project.description, 180).length * 5, 30)
+  }
+
+  y += 10
+  doc.setTextColor(...dark)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
+  doc.text('Étapes du chantier', 15, y)
+  y += 8
+  doc.setFontSize(9)
+  if (project.steps.length === 0) {
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...gray)
+    doc.text('Aucune étape définie.', 15, y)
+    y += 6
+  } else {
+    for (const step of project.steps) {
+      if (y > 270) { doc.addPage(); y = 20 }
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...dark)
+      const mark = step.status === 'TERMINE' || step.status === 'VALIDE_CLIENT' ? '[X]' : '[ ]'
+      const valid = step.validatedByClient ? ' (validé client)' : ''
+      doc.text(`${mark} ${step.title} — ${step.status}${valid}`, 15, y)
+      y += 6
+    }
+  }
+
+  if (project.notes) {
+    if (y > 250) { doc.addPage(); y = 20 }
+    y += 6
+    doc.setTextColor(...dark)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Notes', 15, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...gray)
+    y += 6
+    doc.text(doc.splitTextToSize(project.notes, 180), 15, y)
+  }
+
+  doc.setFontSize(7)
+  doc.setTextColor(...gray)
+  doc.text('Rapport généré automatiquement par ECOPYE Pro Chantier.', 15, 290)
+
+  doc.save(`Rapport-chantier-${project.title.replace(/[^a-z0-9]/gi, '-').slice(0, 30)}.pdf`)
+}

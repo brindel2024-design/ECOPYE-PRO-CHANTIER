@@ -40,10 +40,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        {/* Badge simulation */}
-        <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-          Simulation
-        </span>
 
         {/* Notifications */}
         <button className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100">

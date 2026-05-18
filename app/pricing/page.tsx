@@ -144,7 +144,6 @@ export default function PricingPage() {
 
       <footer className="border-t border-gray-200 bg-white py-8 text-center">
         <p className="text-sm text-gray-500">© 2024 ECOPYE Pro Chantier</p>
-        <p className="text-xs text-amber-600 mt-1">⚠ Prototype de démonstration — Données fictives — Aucun paiement réel</p>
       </footer>
     </div>
   )

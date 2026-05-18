@@ -67,15 +67,79 @@ export default function ProjectDetailPage() {
   const id = params?.id as string
 
   const [project, setProject] = useState<ProjectData | null>(null)
+  const [company, setCompany] = useState<{ name: string; siret: string; address: string; city: string; phone: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/projects/${id}`)
-    if (res.ok) { const d = await res.json(); setProject(d.data) }
+    const [pRes, cRes] = await Promise.all([
+      fetch(`/api/projects/${id}`),
+      fetch('/api/company'),
+    ])
+    if (pRes.ok) { const d = await pRes.json(); setProject(d.data) }
+    if (cRes.ok) { const d = await cRes.json(); setCompany(d.data) }
     setLoading(false)
   }, [id])
+
+  function openNoteModal() {
+    setNoteText(project?.notes ?? '')
+    setShowNoteModal(true)
+  }
+
+  async function handleSaveNote() {
+    if (!project) return
+    setNoteSaving(true)
+    const res = await fetch(`/api/projects/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: noteText }),
+    })
+    setNoteSaving(false)
+    if (res.ok) {
+      setShowNoteModal(false)
+      load()
+      setToast('Note enregistrée'); setTimeout(() => setToast(null), 3000)
+    } else {
+      setToast('Erreur lors de l\'enregistrement'); setTimeout(() => setToast(null), 3000)
+    }
+  }
+
+  async function handleGenerateReport() {
+    if (!project) return
+    if (!company) { setToast('Données entreprise indisponibles'); setTimeout(() => setToast(null), 3000); return }
+    const { generateProjectReportPdf } = await import('@/lib/generate-pdf')
+    await generateProjectReportPdf({
+      title: project.title,
+      description: project.description,
+      status: project.status,
+      progress: project.progress,
+      address: project.address,
+      city: project.city,
+      postalCode: project.postalCode,
+      plannedBudget: project.plannedBudget,
+      actualBudget: project.actualBudget,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      notes: project.notes,
+      client: project.client,
+      company: {
+        name: company.name,
+        siret: company.siret,
+        address: company.address,
+        city: company.city,
+        phone: company.phone,
+      },
+      steps: (project.steps ?? []).map(s => ({
+        title: s.title,
+        status: s.status,
+        validatedByClient: s.validatedByClient,
+      })),
+    })
+  }
 
   useEffect(() => { load() }, [load])
 
@@ -244,18 +308,49 @@ export default function ProjectDetailPage() {
           Photos du chantier {project._count.photos > 0 && `(${project._count.photos})`}
         </Link>
         <button
-          onClick={() => { setToast('Fonctionnalité disponible prochainement'); setTimeout(() => setToast(null), 3000) }}
+          onClick={openNoteModal}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
         >
-          <StickyNote className="h-4 w-4 text-gray-500" />Ajouter une note
+          <StickyNote className="h-4 w-4 text-gray-500" />{project.notes ? 'Modifier la note' : 'Ajouter une note'}
         </button>
         <button
-          onClick={() => { setToast('Rapport PDF disponible prochainement'); setTimeout(() => setToast(null), 3000) }}
+          onClick={handleGenerateReport}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
         >
           <FileText className="h-4 w-4 text-gray-500" />Générer rapport
         </button>
       </div>
+
+      {showNoteModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+            <h2 className="text-base font-bold text-gray-900">Note du chantier</h2>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              rows={6}
+              placeholder="Observations, points de vigilance, échanges client..."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowNoteModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveNote}
+                disabled={noteSaving}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+              >
+                {noteSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

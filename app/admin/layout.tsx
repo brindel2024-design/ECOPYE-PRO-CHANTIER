@@ -9,7 +9,6 @@ import {
   Users,
   Settings,
   LogOut,
-  AlertTriangle,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -57,16 +56,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Shield className="w-3 h-3" />
             ADMIN
           </span>
-        </div>
-
-        {/* Alerte simulation */}
-        <div className="mx-3 mt-3 p-2 bg-amber-900/40 border border-amber-700 rounded-lg">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-3 h-3 text-amber-400 mt-0.5 shrink-0" />
-            <p className="text-amber-300 text-xs leading-tight">
-              Mode simulation — données fictives uniquement
-            </p>
-          </div>
         </div>
 
         {/* Navigation */}

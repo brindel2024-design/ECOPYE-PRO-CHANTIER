@@ -129,18 +129,15 @@ export default function PaymentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Paiements &amp; Encaissements</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gérez et simulez vos encaissements</p>
+          <p className="text-sm text-gray-500 mt-0.5">Gérez vos encaissements</p>
         </div>
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-          ⚠ Simulation — données fictives
-        </span>
       </div>
 
       {/* Intro banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 flex items-center gap-3 text-blue-800 text-sm">
         <Wallet className="w-5 h-5 flex-shrink-0 text-blue-600" />
         <span>
-          <strong>Simulateur de paiement</strong> — Testez les différents modes d&apos;encaissement sans aucune transaction réelle.
+          <strong>Encaissements</strong> — Le paiement par carte se fait depuis chaque facture (Stripe). Cette page récapitule vos modes d&apos;encaissement.
         </span>
       </div>
 

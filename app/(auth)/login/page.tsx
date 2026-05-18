@@ -135,11 +135,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="mt-4 text-center">
-            <p className="text-xs text-amber-600">
-              ⚠ Prototype — Données fictives — Aucun paiement réel
-            </p>
-          </div>
         </div>
 
         {/* Retour landing */}

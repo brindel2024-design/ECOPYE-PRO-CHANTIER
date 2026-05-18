@@ -126,7 +126,7 @@ const faqs = [
   },
   {
     q: 'Mes données sont-elles sécurisées ?',
-    a: 'Toutes les données sont fictives dans la démo. La version commerciale respectera le RGPD avec hébergement en France et chiffrement de bout en bout.',
+    a: 'Vos données sont protégées : hébergement en France, conformité RGPD et chiffrement des échanges.',
   },
   {
     q: 'Puis-je essayer gratuitement ?',
@@ -189,7 +189,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 mb-8">
             <Shield className="h-3.5 w-3.5 text-blue-400" />
-            <span className="text-xs font-medium text-blue-300">Version démo — Données fictives</span>
+            <span className="text-xs font-medium text-blue-300">Le SaaS des artisans du bâtiment</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Devis, chantier, photos,
@@ -490,7 +490,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-blue-200">
-            ⚠ Version démo — Données fictives — Aucun paiement réel
+            Sans engagement — Essai gratuit
           </p>
         </div>
       </section>
@@ -547,7 +547,6 @@ export default function LandingPage() {
           </div>
           <div className="mt-8 border-t border-gray-100 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-xs text-gray-400">© 2024 ECOPYE Pro Chantier. Tous droits réservés.</p>
-            <p className="text-xs text-amber-600 font-medium">⚠ Prototype de démonstration — Données fictives — Aucun paiement réel</p>
           </div>
         </div>
       </footer>

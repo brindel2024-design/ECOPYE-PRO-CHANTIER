@@ -43,9 +43,16 @@ export default function TreasuryPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  function handleRelance(number: string) {
-    setRelanceToast(`Relance envoyée pour ${number}`)
-    setTimeout(() => setRelanceToast(null), 3000)
+  async function handleRelance(id: string, number: string) {
+    setRelanceToast(`Envoi de la relance ${number}…`)
+    try {
+      const res = await fetch(`/api/invoices/${id}/relance`, { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      setRelanceToast(res.ok ? `Relance envoyée par email pour ${number}` : (json.error || `Échec de la relance ${number}`))
+    } catch {
+      setRelanceToast(`Échec de la relance ${number}`)
+    }
+    setTimeout(() => setRelanceToast(null), 4000)
   }
 
   if (loading) {
@@ -161,7 +168,7 @@ export default function TreasuryPage() {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => handleRelance(inv.number)}
+                          onClick={() => handleRelance(inv.id, inv.number)}
                           className="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded-lg font-medium transition-colors"
                         >
                           Relancer

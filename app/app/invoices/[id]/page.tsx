@@ -23,9 +23,10 @@ const STATUS_BADGE: Record<string, string> = {
 }
 
 const PAYMENT_METHODS = [
-  { value: 'VIREMENT', label: 'Virement bancaire' },
-  { value: 'CHEQUE', label: 'Chèque' },
-  { value: 'ESPECES', label: 'Espèces' },
+  { value: 'CARTE', label: 'Carte bancaire (paiement en ligne)' },
+  { value: 'VIREMENT', label: 'Virement bancaire (déjà reçu)' },
+  { value: 'CHEQUE', label: 'Chèque (déjà reçu)' },
+  { value: 'ESPECES', label: 'Espèces (déjà reçues)' },
 ]
 
 interface InvoiceLine {
@@ -55,7 +56,7 @@ export default function InvoiceDetailPage() {
   const [company, setCompany] = useState<CompanyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('VIREMENT')
+  const [paymentMethod, setPaymentMethod] = useState('CARTE')
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
@@ -79,9 +80,33 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    if (q.get('paid') === '1') {
+      showToast('Paiement par carte reçu — facture mise à jour')
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (q.get('canceled') === '1') {
+      showToast('Paiement annulé')
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
   async function handlePayment() {
     if (!invoice) return
     setPaymentLoading(true)
+
+    if (paymentMethod === 'CARTE') {
+      const res = await fetch(`/api/invoices/${id}/checkout`, { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      setPaymentLoading(false)
+      if (res.ok && json.url) {
+        window.location.href = json.url
+      } else {
+        showToast(json.error || 'Paiement par carte indisponible')
+      }
+      return
+    }
+
     const res = await fetch(`/api/invoices/${id}/pay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

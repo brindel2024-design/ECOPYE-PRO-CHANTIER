@@ -1,7 +1,6 @@
 'use client'
 import {
   Shield,
-  AlertTriangle,
   Building2,
   Users,
   FileText,
@@ -119,13 +118,6 @@ export default function AdminDashboard() {
         </div>
         <p className="text-slate-500 text-sm">Vue d&apos;ensemble de la plateforme</p>
 
-        {/* Alerte simulation */}
-        <div className="mt-3 flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg w-fit">
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <p className="text-amber-700 text-sm font-medium">
-            Mode simulation — toutes les données sont fictives
-          </p>
-        </div>
       </div>
 
       {/* KPI Cards */}

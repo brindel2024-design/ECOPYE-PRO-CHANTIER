@@ -25,14 +25,25 @@ export default function LoginPage() {
       redirect: false,
     })
 
-    setLoading(false)
-
     if (result?.error) {
+      setLoading(false)
       setError('Email ou mot de passe incorrect.')
-    } else {
-      router.push('/app/dashboard')
-      router.refresh()
+      return
     }
+
+    // Redirection selon le rôle : admin plateforme → /admin, artisan → /app
+    let target = '/app/dashboard'
+    try {
+      const res = await fetch('/api/auth/session')
+      const session = await res.json()
+      if (session?.user?.role === 'ECOPYE_ADMIN') target = '/admin'
+    } catch {
+      /* défaut /app/dashboard */
+    }
+
+    setLoading(false)
+    router.push(target)
+    router.refresh()
   }
 
   return (

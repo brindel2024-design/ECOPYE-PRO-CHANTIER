@@ -105,11 +105,25 @@ export const authOptions: NextAuthOptions = {
         token.id = authUser.id
         token.role = authUser.role
         token.companyId = authUser.companyId
+        return token
+      }
+      // Appels suivants : vérifier que le compte existe toujours et est actif.
+      // Empêche les sessions fantômes après suppression/désactivation d'un compte.
+      if (token?.id && !isDemoMode) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { active: true, role: true, companyId: true },
+        })
+        if (!dbUser || !dbUser.active) {
+          return {}
+        }
+        token.role = dbUser.role
+        token.companyId = dbUser.companyId
       }
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token?.id) {
         session.user.id = token.id as string
         session.user.role = token.role as string
         session.user.companyId = token.companyId as string | undefined

@@ -14,6 +14,30 @@ export async function getSessionOrUnauthorized() {
 }
 
 /**
+ * Garde réservé aux comptes plateforme ECOPYE_ADMIN.
+ */
+export async function requireEcopyeAdmin() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return {
+      session: null,
+      error: NextResponse.json({ error: 'Non autorisé' }, { status: 401 }),
+    }
+  }
+  const role = (session.user as { role?: string }).role
+  if (role !== 'ECOPYE_ADMIN') {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { error: "Accès réservé à l'administration ECOPYE" },
+        { status: 403 }
+      ),
+    }
+  }
+  return { session, error: null }
+}
+
+/**
  * Récupère le companyId de la session ou renvoie une erreur 400.
  * Les comptes ECOPYE_ADMIN n'ont pas de companyId.
  */

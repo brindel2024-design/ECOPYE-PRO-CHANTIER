@@ -6,8 +6,8 @@ import {
   Shield,
   BarChart3,
   Building2,
-  Users,
-  Settings,
+  CreditCard,
+  LifeBuoy,
   LogOut,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -15,8 +15,8 @@ import Link from 'next/link'
 const NAV_ITEMS = [
   { href: '/admin', label: "Vue d'ensemble", icon: BarChart3 },
   { href: '/admin/companies', label: 'Entreprises', icon: Building2 },
-  { href: '/admin/users', label: 'Utilisateurs', icon: Users },
-  { href: '/admin/settings', label: 'Paramètres', icon: Settings },
+  { href: '/admin/subscriptions', label: 'Abonnements', icon: CreditCard },
+  { href: '/admin/support', label: 'Support', icon: LifeBuoy },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -24,17 +24,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const pathname = usePathname()
 
+  const role = (session?.user as { role?: string } | undefined)?.role
+
   useEffect(() => {
     if (status === 'loading') return
     if (!session) {
-      router.push('/auth/signin')
+      router.push('/login')
       return
     }
-    // En simulation — tout utilisateur connecté peut accéder à l'admin
-    // En production: vérifier session.user.role === 'ECOPYE_ADMIN'
-  }, [session, status, router])
+    if (role !== 'ECOPYE_ADMIN') {
+      router.push('/app/dashboard')
+    }
+  }, [session, status, role, router])
 
-  if (status === 'loading') {
+  if (status === 'loading' || !session || role !== 'ECOPYE_ADMIN') {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-slate-400 text-sm">Chargement...</div>
@@ -92,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </p>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            onClick={() => signOut({ callbackUrl: '/login' })}
             className="flex items-center gap-2 w-full px-3 py-2 text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg text-sm transition-colors"
           >
             <LogOut className="w-4 h-4" />

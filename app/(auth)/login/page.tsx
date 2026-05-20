@@ -8,8 +8,8 @@ import { HardHat, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('jean.durand@durand-renovation.fr')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -68,13 +68,6 @@ export default function LoginPage() {
           <p className="text-sm text-gray-500 text-center mb-8">
             Accédez à votre espace artisan
           </p>
-
-          {/* Compte démo */}
-          <div className="mb-6 rounded-xl bg-blue-50 border border-blue-100 p-4">
-            <p className="text-xs font-semibold text-blue-700 mb-2">Compte démo pré-rempli :</p>
-            <p className="text-xs text-blue-600">jean.durand@durand-renovation.fr</p>
-            <p className="text-xs text-blue-600">Mot de passe : password123</p>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (

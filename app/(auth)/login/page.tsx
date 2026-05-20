@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { HardHat, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import { InstallApp } from '@/components/InstallApp'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -139,6 +140,7 @@ export default function LoginPage() {
             </p>
           </div>
 
+          <InstallApp />
         </div>
 
         {/* Retour landing */}

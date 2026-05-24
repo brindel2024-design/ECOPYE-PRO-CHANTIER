@@ -11,10 +11,17 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
   const [err, setErr] = useState('')
 
+  const role = (session?.user as { role?: string } | undefined)?.role
+  const isAdmin = role === 'ECOPYE_ADMIN'
+
   async function subscribe(plan: PlanKey) {
     setErr('')
     if (status !== 'authenticated') {
       window.location.href = `/register?plan=${plan}`
+      return
+    }
+    if (isAdmin) {
+      setErr("Vous êtes connecté en tant qu'administrateur ECOPYE. Déconnectez-vous puis connectez-vous (ou inscrivez-vous) avec un compte artisan pour souscrire.")
       return
     }
     setLoadingPlan(plan)
@@ -72,8 +79,27 @@ export default function PricingPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Des tarifs simples, sans engagement</h1>
           <p className="text-gray-600">{TRIAL_DAYS} jours d&apos;essai gratuit. Sans carte requise pour démarrer.</p>
-          {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
         </div>
+
+        {isAdmin && (
+          <div className="max-w-3xl mx-auto mb-8 bg-amber-50 border-2 border-amber-300 rounded-xl p-4 flex items-start gap-3 text-amber-900">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="font-semibold mb-1">Vous êtes connecté en tant qu&apos;administrateur ECOPYE</p>
+              <p className="text-sm">
+                Les abonnements sont destinés aux <strong>artisans</strong> (entreprises clientes de la plateforme). En tant qu&apos;admin, vous gérez la plateforme — vous ne pouvez pas vous abonner à votre propre service. Pour tester le flux : <Link href="/api/auth/signout" className="underline font-semibold">déconnectez-vous</Link> puis créez un compte artisan via <Link href="/register" className="underline font-semibold">inscription</Link>.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {err && (
+          <div className="max-w-3xl mx-auto mb-8 bg-red-50 border-2 border-red-300 rounded-xl p-4 flex items-start gap-3 text-red-900">
+            <span className="text-xl">❌</span>
+            <p className="text-sm flex-1">{err}</p>
+            <button onClick={() => setErr('')} className="text-red-600 hover:text-red-800 text-sm font-medium">Fermer</button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {PLAN_ORDER.map((key) => {
@@ -111,8 +137,8 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => subscribe(key)}
-                  disabled={isLoading || status === 'loading'}
-                  className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${
+                  disabled={isLoading || status === 'loading' || isAdmin}
+                  className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     plan.highlight
                       ? 'bg-blue-600 hover:bg-blue-700 text-white'
                       : 'bg-gray-900 hover:bg-gray-800 text-white'

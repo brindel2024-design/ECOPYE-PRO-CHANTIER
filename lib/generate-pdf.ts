@@ -7,7 +7,7 @@ export async function generateQuotePdf(quote: {
   createdAt: string
   expiresAt?: string | null
   client: { firstName: string; lastName: string; email: string; phone: string; address: string; city: string }
-  company: { name: string; siret: string; address: string; city: string; phone: string; email: string }
+  company: { name: string; siret: string | null; address: string; city: string; phone: string; email: string; vatNumber?: string | null; insuranceNumber?: string | null }
   lines: { label: string; quantity: number; unit: string; unitPriceHT: number; vatRate: number; totalHT: number }[]
   subtotalHT: number
   vatAmount: number
@@ -42,10 +42,11 @@ export async function generateQuotePdf(quote: {
   doc.text(quote.company.name, 15, 50)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...gray)
-  doc.text(`SIRET : ${quote.company.siret}`, 15, 56)
-  doc.text(quote.company.address, 15, 61)
+  doc.text(`SIRET : ${quote.company.siret ?? '— à renseigner —'}`, 15, 56)
+  doc.text(quote.company.address || '— adresse à compléter —', 15, 61)
   doc.text(quote.company.city, 15, 66)
   doc.text(quote.company.phone, 15, 71)
+  if (quote.company.vatNumber) doc.text(`TVA intracom. : ${quote.company.vatNumber}`, 15, 76)
 
   // Client block
   doc.setFillColor(248, 250, 252)
@@ -124,10 +125,28 @@ export async function generateQuotePdf(quote: {
     doc.text(quote.notes.substring(0, 200), 15, y + 6)
   }
 
-  // Footer
+  // Mentions légales devis
   doc.setFontSize(7)
   doc.setTextColor(...gray)
-  doc.text('Ce devis est valable 30 jours. En cas d\'acceptation, veuillez retourner ce document signé avec la mention "Bon pour accord".', 15, 285)
+  let footerY = 268
+  const legalLines: string[] = [
+    'Devis valable 30 jours à compter de la date d\'émission. En cas d\'acceptation, retourner ce document signé avec la mention manuscrite « Bon pour accord ».',
+    'Modalités de règlement : à la commande pour l\'acompte (30 %), solde à la fin des travaux.',
+    'En cas de retard de paiement, des pénalités au taux de 3 fois le taux d\'intérêt légal en vigueur seront appliquées (art. L.441-10 Code de commerce), ainsi qu\'une indemnité forfaitaire pour frais de recouvrement de 40 € (art. D.441-5).',
+    'Aucun escompte n\'est accordé pour paiement anticipé, sauf accord particulier.',
+  ]
+  if (quote.company.insuranceNumber) {
+    legalLines.push(`Assurance professionnelle / décennale : ${quote.company.insuranceNumber}.`)
+  }
+  if (!quote.company.siret) {
+    legalLines.unshift('⚠ DOCUMENT INCOMPLET — SIRET de l\'éditeur manquant. À compléter dans Paramètres avant transmission au client.')
+  }
+  for (const line of legalLines) {
+    const wrapped = doc.splitTextToSize(line, 180)
+    doc.text(wrapped, 15, footerY)
+    footerY += wrapped.length * 3.5 + 1
+    if (footerY > 290) break
+  }
 
   doc.save(`Devis-${quote.number}.pdf`)
 }
@@ -138,7 +157,7 @@ export async function generateInvoicePdf(invoice: {
   issuedAt: string
   dueDate?: string | null
   client: { firstName: string; lastName: string; email: string; phone: string; address: string; city: string }
-  company: { name: string; siret: string; address: string; city: string; phone: string; email: string; vatNumber?: string | null; insuranceNumber?: string | null }
+  company: { name: string; siret: string | null; address: string; city: string; phone: string; email: string; vatNumber?: string | null; insuranceNumber?: string | null }
   lines: { label: string; quantity: number; unit: string; unitPriceHT: number; vatRate: number; totalHT: number }[]
   subtotalHT: number
   vatAmount: number
@@ -173,8 +192,8 @@ export async function generateInvoicePdf(invoice: {
   doc.text(invoice.company.name, 15, 50)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...gray)
-  doc.text(`SIRET : ${invoice.company.siret}`, 15, 56)
-  if (invoice.company.vatNumber) doc.text(`TVA : ${invoice.company.vatNumber}`, 15, 61)
+  doc.text(`SIRET : ${invoice.company.siret ?? '— à renseigner —'}`, 15, 56)
+  if (invoice.company.vatNumber) doc.text(`TVA intracom. : ${invoice.company.vatNumber}`, 15, 61)
   doc.text(invoice.company.address, 15, 66)
   doc.text(invoice.company.city, 15, 71)
 
@@ -243,12 +262,34 @@ export async function generateInvoicePdf(invoice: {
     y += 10
   }
 
-  doc.setFillColor(243, 244, 246)
-  doc.rect(15, y, 180, 20, 'F')
+  // Mentions légales facture (Code de commerce L.441-10, D.441-5)
+  doc.setFontSize(7)
   doc.setTextColor(...gray)
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.text('Règlement par virement bancaire uniquement. Tout retard de paiement entraîne des pénalités de 3× le taux légal.', 17, y + 8)
+  let footerY = 262
+  const legalLines: string[] = [
+    'Règlement par virement bancaire (RIB à demander). Tout autre moyen de paiement doit faire l\'objet d\'un accord préalable.',
+    'En cas de retard de paiement, application sans mise en demeure préalable de pénalités au taux de 3 fois le taux d\'intérêt légal en vigueur (art. L.441-10 Code de commerce).',
+    'Indemnité forfaitaire pour frais de recouvrement : 40 € (art. D.441-5 Code de commerce), majorée si les frais réels exposés sont supérieurs.',
+    'Aucun escompte n\'est accordé pour paiement anticipé, sauf accord particulier.',
+    'TVA non applicable, art. 293 B du CGI — à supprimer si vous êtes assujetti à la TVA.',
+  ]
+  if (invoice.company.insuranceNumber) {
+    legalLines.push(`Assurance professionnelle / décennale : ${invoice.company.insuranceNumber}.`)
+  }
+  if (invoice.company.vatNumber) {
+    // Si la société a un numéro de TVA, retirer la mention franchise
+    legalLines.splice(legalLines.length - 2, 1)
+  }
+  if (!invoice.company.siret) {
+    legalLines.unshift('⚠ DOCUMENT INCOMPLET — SIRET de l\'émetteur manquant. À compléter dans Paramètres avant transmission au client.')
+  }
+  for (const line of legalLines) {
+    const wrapped = doc.splitTextToSize(line, 180)
+    doc.text(wrapped, 15, footerY)
+    footerY += wrapped.length * 3.3 + 0.7
+    if (footerY > 290) break
+  }
 
   doc.save(`Facture-${invoice.number}.pdf`)
 }
@@ -267,7 +308,7 @@ export async function generateProjectReportPdf(project: {
   endDate?: string | null
   notes?: string | null
   client?: { firstName: string; lastName: string; phone: string; city: string } | null
-  company: { name: string; siret: string; address: string; city: string; phone: string }
+  company: { name: string; siret: string | null; address: string; city: string; phone: string }
   steps: { title: string; status: string; validatedByClient: boolean }[]
 }) {
   const { jsPDF } = await import('jspdf')
@@ -296,7 +337,7 @@ export async function generateProjectReportPdf(project: {
   doc.text(project.company.name, 15, 50)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...gray)
-  doc.text(`SIRET : ${project.company.siret}`, 15, 56)
+  doc.text(`SIRET : ${project.company.siret ?? '— à renseigner —'}`, 15, 56)
   doc.text(project.company.phone, 15, 61)
 
   if (project.client) {

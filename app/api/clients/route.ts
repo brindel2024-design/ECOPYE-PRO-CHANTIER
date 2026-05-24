@@ -58,7 +58,6 @@ export async function POST(request: Request) {
       city,
       postalCode,
       notes,
-      trustScore,
     } = body
 
     if (!firstName || !lastName || !email) {
@@ -81,7 +80,6 @@ export async function POST(request: Request) {
         city: city ?? '',
         postalCode: postalCode ?? '',
         notes: notes ?? null,
-        trustScore: trustScore ?? 5,
       },
     })
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Users, Plus, Search, Star, Phone, Mail, MapPin, Loader2 } from 'lucide-react'
+import { Users, Plus, Search, Phone, Mail, MapPin, Loader2 } from 'lucide-react'
 import { formatDate, getInitials } from '@/lib/utils'
 import { EmptyState } from '@/components/EmptyState'
 
@@ -15,7 +15,6 @@ interface Client {
   phone: string
   city: string
   postalCode: string
-  trustScore: number
   createdAt: string
 }
 
@@ -109,10 +108,6 @@ export default function ClientsPage() {
                     <p className="text-sm font-semibold text-gray-900">{client.firstName} {client.lastName}</p>
                     <span className="text-xs text-gray-400">{client.type === 'PARTICULIER' ? 'Particulier' : 'Professionnel'}</span>
                   </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className={`h-3.5 w-3.5 ${client.trustScore >= 7 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
-                  <span className="text-xs font-medium text-gray-600">{client.trustScore}/10</span>
                 </div>
               </div>
               <div className="space-y-1.5">

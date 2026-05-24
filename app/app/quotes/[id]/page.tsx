@@ -25,7 +25,7 @@ interface QuoteData {
 }
 
 interface CompanyData {
-  name: string; siret: string; address: string; city: string; phone: string; email: string
+  name: string; siret: string | null; address: string; city: string; phone: string; email: string
 }
 
 export default function QuoteDetailPage() {
@@ -189,7 +189,9 @@ export default function QuoteDetailPage() {
                     <p className="text-sm font-semibold text-gray-900">{company.name}</p>
                     <p className="text-xs text-gray-500">{company.address}</p>
                     <p className="text-xs text-gray-500">{company.city}</p>
-                    <p className="text-xs text-gray-500">SIRET: {company.siret}</p>
+                    <p className="text-xs text-gray-500">
+                      {company.siret ? `SIRET : ${company.siret}` : <span className="text-red-600 font-medium">SIRET à renseigner</span>}
+                    </p>
                   </>
                 )}
               </div>

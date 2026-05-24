@@ -41,6 +41,7 @@ const navigation = [
 
 const settingsNav = [
   { name: 'Mon abonnement', href: '/app/settings/billing', icon: CreditCard },
+  { name: 'Mon compte', href: '/app/settings/account', icon: Settings },
   { name: 'Paramètres', href: '/app/settings', icon: Settings },
 ]
 

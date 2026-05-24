@@ -44,7 +44,7 @@ interface InvoiceData {
 }
 
 interface CompanyData {
-  name: string; siret: string; address: string; city: string; phone: string; email: string
+  name: string; siret: string | null; address: string; city: string; phone: string; email: string
   vatNumber: string; insuranceNumber: string
 }
 
@@ -214,7 +214,9 @@ export default function InvoiceDetailPage() {
             {company && (
               <>
                 <p className="text-lg font-bold text-gray-900">{company.name}</p>
-                <p className="text-sm text-gray-500 mt-1">SIRET : {company.siret}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {company.siret ? `SIRET : ${company.siret}` : <span className="text-red-600 font-medium">SIRET à renseigner dans Paramètres</span>}
+                </p>
                 <p className="text-sm text-gray-500">{company.address}</p>
                 <p className="text-sm text-gray-500">{company.city}</p>
                 <p className="text-sm text-gray-500">{company.phone}</p>

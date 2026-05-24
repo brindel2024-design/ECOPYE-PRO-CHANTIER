@@ -125,7 +125,6 @@ export interface Client {
   city: string
   postalCode: string
   notes?: string
-  trustScore: number
   active: boolean
   createdAt: Date
   updatedAt: Date

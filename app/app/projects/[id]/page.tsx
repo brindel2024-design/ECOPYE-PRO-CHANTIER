@@ -67,7 +67,7 @@ export default function ProjectDetailPage() {
   const id = params?.id as string
 
   const [project, setProject] = useState<ProjectData | null>(null)
-  const [company, setCompany] = useState<{ name: string; siret: string; address: string; city: string; phone: string } | null>(null)
+  const [company, setCompany] = useState<{ name: string; siret: string | null; address: string; city: string; phone: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
   const [showNoteModal, setShowNoteModal] = useState(false)

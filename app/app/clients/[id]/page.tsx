@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, Phone, Mail, MapPin, Star, FileText, FolderKanban,
+  ArrowLeft, Phone, Mail, MapPin, FileText, FolderKanban,
   Receipt, Plus, Loader2,
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
@@ -15,7 +15,7 @@ interface ClientData {
   id: string; type: string; firstName: string; lastName: string
   companyName: string | null; email: string; phone: string
   address: string; city: string; postalCode: string
-  notes: string | null; trustScore: number; active: boolean
+  notes: string | null; active: boolean
   quotes: Array<{ id: string; number: string; title: string; status: string; totalTTC: number; createdAt: string }>
   invoices: Array<{ id: string; number: string; type: string; status: string; totalTTC: number; amountPaid: number; issuedAt: string }>
   projects: Array<{ id: string; title: string; status: string; city: string; plannedBudget: number }>
@@ -73,12 +73,6 @@ export default function ClientDetailPage() {
               <p className="text-sm text-gray-500">
                 {client.type === 'PARTICULIER' ? 'Client particulier' : 'Client professionnel'}
               </p>
-              <div className="flex items-center gap-0.5 mt-1">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <Star key={i} className={`h-3.5 w-3.5 ${i < client.trustScore ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`} />
-                ))}
-                <span className="ml-1 text-xs text-gray-500">Score de confiance: {client.trustScore}/10</span>
-              </div>
             </div>
           </div>
         </div>

@@ -57,7 +57,6 @@ export async function PUT(request: Request, { params }: Params) {
       'city',
       'postalCode',
       'notes',
-      'trustScore',
       'active',
     ] as const
     const updateData: Record<string, unknown> = {}

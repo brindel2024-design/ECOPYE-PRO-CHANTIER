@@ -18,6 +18,25 @@ export async function POST(_request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Devis introuvable' }, { status: 404 })
     }
 
+    // Garde-fou légal : un devis envoyé doit porter le SIRET et l'adresse de l'émetteur
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { siret: true, address: true, postalCode: true },
+    })
+    const missing: string[] = []
+    if (!company?.siret) missing.push('SIRET')
+    if (!company?.address) missing.push('adresse')
+    if (!company?.postalCode) missing.push('code postal')
+    if (missing.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Profil entreprise incomplet (${missing.join(', ')}). Complétez vos informations légales dans Paramètres avant d'envoyer un devis.`,
+          missing,
+        },
+        { status: 400 }
+      )
+    }
+
     const data = await prisma.quote.update({
       where: { id: params.id },
       data: { status: 'ENVOYE', sentAt: new Date() },

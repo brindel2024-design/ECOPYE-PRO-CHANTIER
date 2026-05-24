@@ -20,6 +20,7 @@ interface DashboardData {
     unpaidInvoices: number
     unpaidAmount: number
     conversionRate: number
+    totalClients: number
   }
   revenueData: Array<{ month: string; revenue: number }>
   quoteRateData: { total: number; accepted: number; rate: number }
@@ -80,7 +81,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <StatCard title="Factures impayées" value={stats?.unpaidInvoices ?? 0} icon={AlertTriangle} color="red" />
         <StatCard title="Taux conversion" value={`${stats?.conversionRate ?? 0}%`} icon={Percent} color="green" />
-        <StatCard title="Total clients" value="—" icon={Users} color="blue" />
+        <StatCard title="Total clients" value={stats?.totalClients ?? 0} icon={Users} color="blue" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

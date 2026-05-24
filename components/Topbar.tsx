@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 import { Bell, Menu, Search, HardHat } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 
@@ -10,6 +11,16 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { data: session } = useSession()
+  const [companyName, setCompanyName] = useState<string>('')
+
+  useEffect(() => {
+    fetch('/api/company')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (j?.data?.name) setCompanyName(j.data.name)
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-6">
@@ -49,14 +60,16 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
         {/* Avatar utilisateur */}
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-            {session?.user?.name ? getInitials(session.user.name) : 'JD'}
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white" aria-hidden="true">
+            {session?.user?.name ? getInitials(session.user.name) : '–'}
           </div>
           <div className="hidden lg:block">
             <p className="text-sm font-medium text-gray-900">
-              {session?.user?.name ?? 'Jean Durand'}
+              {session?.user?.name ?? session?.user?.email ?? 'Mon compte'}
             </p>
-            <p className="text-xs text-gray-500">Durand Rénovation Services</p>
+            {companyName && (
+              <p className="text-xs text-gray-500 truncate max-w-[180px]">{companyName}</p>
+            )}
           </div>
         </div>
       </div>

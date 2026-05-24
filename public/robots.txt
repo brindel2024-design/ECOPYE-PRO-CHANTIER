@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /mentions-legales
+Allow: /confidentialite
+Allow: /cgu
+Allow: /cgv
+Allow: /contact
+
+Disallow: /login
+Disallow: /register
+Disallow: /app/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /client-portal/
+
+Sitemap: https://pro.ecopye.fr/sitemap.xml

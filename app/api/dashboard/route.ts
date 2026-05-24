@@ -37,6 +37,7 @@ export async function GET() {
       totalQuotes,
       acceptedQuotes,
       paidInvoicesPeriod,
+      totalClients,
     ] = await Promise.all([
       prisma.invoice.findMany({
         where: {
@@ -65,6 +66,7 @@ export async function GET() {
         },
         select: { totalTTC: true, paidAt: true },
       }),
+      prisma.client.count({ where: { companyId } }),
     ])
 
     const revenueThisMonth = paidInvoicesThisMonth.reduce(
@@ -115,6 +117,7 @@ export async function GET() {
           unpaidInvoices: unpaidInvoices.length,
           unpaidAmount,
           conversionRate,
+          totalClients,
         },
         revenueData,
         quoteRateData: {

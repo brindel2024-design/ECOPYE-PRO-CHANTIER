@@ -76,7 +76,7 @@ model Company {
   id                    String    @id @default(cuid())
   name                  String
   ownerName             String
-  siret                 String    @unique
+  siret                 String?   @unique
   trade                 String    @default("MULTI_SERVICES")
   address               String
   city                  String

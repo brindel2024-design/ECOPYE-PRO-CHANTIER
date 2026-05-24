@@ -33,6 +33,7 @@ export default function RegisterPage() {
     city: '',
     phone: '',
   })
+  const [acceptTerms, setAcceptTerms] = useState(false)
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -42,6 +43,11 @@ export default function RegisterPage() {
     e.preventDefault()
     if (step < 2) {
       setStep(2)
+      return
+    }
+
+    if (!acceptTerms) {
+      setError('Vous devez accepter les CGU et la politique de confidentialité pour créer un compte.')
       return
     }
 
@@ -221,10 +227,30 @@ export default function RegisterPage() {
                   </>
                 )}
 
+                {step === 2 && (
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-xs text-gray-600 leading-relaxed">
+                      J&apos;ai lu et j&apos;accepte les{' '}
+                      <Link href="/cgu" target="_blank" className="text-blue-600 hover:underline">CGU</Link>,
+                      les{' '}
+                      <Link href="/cgv" target="_blank" className="text-blue-600 hover:underline">CGV</Link>{' '}
+                      et la{' '}
+                      <Link href="/confidentialite" target="_blank" className="text-blue-600 hover:underline">politique de confidentialité (RGPD)</Link>.
+                      Mes données seront traitées conformément à cette politique pour gérer mon compte et la facturation.
+                    </span>
+                  </label>
+                )}
+
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={loading || (step === 2 && !acceptTerms)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <><Loader2 className="h-4 w-4 animate-spin" />Création en cours...</>

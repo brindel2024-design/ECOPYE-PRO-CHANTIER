@@ -6,7 +6,6 @@ import {
   CreditCard,
   CheckCircle2,
   ArrowRight,
-  Star,
   HardHat,
   Shield,
   Zap,
@@ -21,6 +20,7 @@ import {
   Smartphone,
 } from 'lucide-react'
 import { PwaInstallButton } from '@/components/PwaInstallButton'
+import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/plans'
 
 const features = [
   {
@@ -68,61 +68,11 @@ const problems = [
   { icon: Users, text: 'Perte de clients faute de suivi et de professionnalisme perçu' },
 ]
 
-const testimonials = [
-  {
-    name: 'Patrick Renard',
-    role: 'Plombier, 12 ans d\'expérience — Lyon',
-    text: '"Avant, je passais mes soirées sous Excel. Maintenant mes devis partent le jour même et mes clients voient l\'avancement du chantier en temps réel. Mes paiements arrivent 2 semaines plus tôt."',
-    stars: 5,
-    avatar: 'PR',
-  },
-  {
-    name: 'Sylvie Marchetti',
-    role: 'Entreprise rénovation salle de bain — Marseille',
-    text: '"J\'ai évité un litige grâce aux photos avant/après archivées. Le client ne pouvait pas contester l\'état initial. ECOPYE Pro m\'a sauvé 8 000 € de travaux contestés."',
-    stars: 5,
-    avatar: 'SM',
-  },
-  {
-    name: 'Hamid Bouafia',
-    role: 'Multi-services BTP — Paris',
-    text: '"Interface simple, mes techniciens l\'ont prise en main en 1 heure. Le portail client les impressionne vraiment. On a l\'air d\'une grande entreprise."',
-    stars: 5,
-    avatar: 'HB',
-  },
-]
-
-const plans = [
-  {
-    name: 'Starter',
-    price: '29',
-    description: 'Pour démarrer proprement',
-    features: ['5 devis/mois', '3 chantiers actifs', '1 utilisateur', 'Factures simples', 'Photos limitées'],
-    cta: 'Commencer',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: '59',
-    description: 'Pour les artisans actifs',
-    features: ['Devis illimités', 'Chantiers illimités', '3 utilisateurs', 'Paiements simulés', 'Relances auto', 'Photos avant/après', 'Documents'],
-    cta: 'Démarrer — le plus populaire',
-    highlighted: true,
-  },
-  {
-    name: 'Premium',
-    price: '99',
-    description: 'Pour les PME BTP',
-    features: ['Multi-utilisateurs', 'Copilote IA', 'Trésorerie avancée', 'Dossier litige', 'Bibliothèque', 'Espace client', 'Support prioritaire'],
-    cta: 'Passer Premium',
-    highlighted: false,
-  },
-]
 
 const faqs = [
   {
     q: 'Est-ce que les paiements sont réels ?',
-    a: 'Dans cette version démo, tous les paiements sont simulés. Aucune donnée bancaire réelle n\'est utilisée. La version commerciale intégrera Stripe ou PayPlug.',
+    a: 'Oui. Le paiement par carte bancaire passe par Stripe (PCI-DSS niveau 1). Vos clients reçoivent un lien de paiement sécurisé sur la page de leur facture. Vous recevez les fonds sur votre compte bancaire selon votre configuration Stripe.',
   },
   {
     q: 'Mes données sont-elles sécurisées ?',
@@ -130,7 +80,7 @@ const faqs = [
   },
   {
     q: 'Puis-je essayer gratuitement ?',
-    a: 'Oui ! Créez votre compte gratuitement et explorez toutes les fonctionnalités en mode démonstration pendant 14 jours.',
+    a: `Oui. Créez votre compte et bénéficiez de ${TRIAL_DAYS} jours d'essai gratuit sans carte bancaire. À l'issue, vous choisissez une formule pour continuer.`,
   },
   {
     q: 'L\'application fonctionne-t-elle sur mobile ?',
@@ -161,7 +111,6 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#fonctionnalites" className="text-sm text-gray-600 hover:text-gray-900">Fonctionnalités</a>
               <a href="#tarifs" className="text-sm text-gray-600 hover:text-gray-900">Tarifs</a>
-              <a href="#temoignages" className="text-sm text-gray-600 hover:text-gray-900">Témoignages</a>
               <a href="#faq" className="text-sm text-gray-600 hover:text-gray-900">FAQ</a>
             </div>
             <div className="flex items-center gap-3">
@@ -187,9 +136,14 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-24 sm:py-32">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptMC0zMHY2aDZ2LTZoLTZ6TTYgNHY2aDZWNEg2em0wIDMwdjZoNnYtNkg2em0yNCAyNHY2aDZ2LTZoLTZ6TTE4IDEwdjZoNnYtNmgtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 mb-8">
-            <Shield className="h-3.5 w-3.5 text-blue-400" />
-            <span className="text-xs font-medium text-blue-300">Le SaaS des artisans du bâtiment</span>
+          <div className="inline-flex items-center gap-3 mb-8">
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+              BÊTA
+            </span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5">
+              <Shield className="h-3.5 w-3.5 text-blue-400" />
+              <span className="text-xs font-medium text-blue-300">Le SaaS des artisans du bâtiment</span>
+            </div>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Devis, chantier, photos,
@@ -211,10 +165,10 @@ export default function LandingPage() {
               <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
-              href="/login"
+              href="/pricing"
               className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 transition-all"
             >
-              Voir la démo
+              Voir les tarifs
             </Link>
           </div>
           <div className="mt-8 flex items-center justify-center gap-6 text-sm text-slate-400">
@@ -277,25 +231,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Chiffres clés */}
-      <section className="border-b border-gray-100 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {[
-              { value: '+2h', label: 'gagnées par devis' },
-              { value: '-45%', label: 'de litiges clients' },
-              { value: '3x', label: 'paiements plus rapides' },
-              { value: '98%', label: 'satisfaction artisans' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{stat.value}</p>
-                <p className="mt-1 text-sm text-gray-500">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Problème */}
       <section className="py-20 bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -352,37 +287,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Témoignages */}
-      <section id="temoignages" className="py-24 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Ce que disent les artisans</h2>
-            <p className="mt-4 text-gray-600">Des témoignages fictifs représentatifs de cas réels</p>
-          </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-0.5 mb-4">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-700 leading-relaxed mb-6 italic">{t.text}</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Tarifs */}
       <section id="tarifs" className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -391,16 +295,18 @@ export default function LandingPage() {
             <p className="mt-4 text-gray-600">Commencez gratuitement, évoluez quand vous voulez.</p>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3 max-w-5xl mx-auto">
-            {plans.map((plan) => (
+            {PLAN_ORDER.map((key) => {
+              const plan = PLANS[key]
+              return (
               <div
-                key={plan.name}
+                key={plan.key}
                 className={`relative rounded-2xl p-8 ${
-                  plan.highlighted
+                  plan.highlight
                     ? 'bg-blue-600 text-white shadow-xl shadow-blue-200'
                     : 'border border-gray-200 bg-white'
                 }`}
               >
-                {plan.highlighted && (
+                {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white">
                       Le plus populaire
@@ -408,39 +314,40 @@ export default function LandingPage() {
                   </div>
                 )}
                 <div className="mb-6">
-                  <h3 className={`text-lg font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg font-bold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                     {plan.name}
                   </h3>
-                  <p className={`text-sm mt-1 ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
+                  <p className={`text-sm mt-1 ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
                     {plan.description}
                   </p>
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.price} €
+                    <span className={`text-4xl font-bold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.priceMonthly} €
                     </span>
-                    <span className={`text-sm ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>/mois</span>
+                    <span className={`text-sm ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>/mois HT</span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${plan.highlighted ? 'text-blue-200' : 'text-green-500'}`} />
-                      <span className={plan.highlighted ? 'text-blue-100' : 'text-gray-700'}>{feature}</span>
+                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${plan.highlight ? 'text-blue-200' : 'text-green-500'}`} />
+                      <span className={plan.highlight ? 'text-blue-100' : 'text-gray-700'}>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Link
-                  href="/register"
+                  href={`/register?plan=${plan.key}`}
                   className={`block w-full rounded-xl py-3 text-center text-sm font-semibold transition-all ${
-                    plan.highlighted
+                    plan.highlight
                       ? 'bg-white text-blue-600 hover:bg-blue-50'
                       : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  {plan.cta}
+                  Démarrer avec {plan.name}
                 </Link>
               </div>
-            ))}
+              )
+            })}
           </div>
           <p className="text-center text-sm text-gray-500 mt-8">
             Plan Entreprise sur devis — <a href="mailto:pro@ecopye.fr" className="text-blue-600 hover:underline">pro@ecopye.fr</a>
@@ -483,10 +390,10 @@ export default function LandingPage() {
               <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
-              href="/login"
+              href="/pricing"
               className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 transition-all"
             >
-              Voir la démo
+              Voir les tarifs
             </Link>
           </div>
           <p className="mt-6 text-sm text-blue-200">
@@ -512,41 +419,43 @@ export default function LandingPage() {
             </div>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">Produit</h4>
-              <ul className="space-y-2">
-                {['Fonctionnalités', 'Tarifs', 'Témoignages', 'FAQ'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-gray-500 hover:text-gray-900">{item}</a>
-                  </li>
-                ))}
+              <ul className="space-y-2 text-sm">
+                <li><a href="#fonctionnalites" className="text-gray-500 hover:text-gray-900">Fonctionnalités</a></li>
+                <li><Link href="/pricing" className="text-gray-500 hover:text-gray-900">Tarifs</Link></li>
+                <li><a href="#faq" className="text-gray-500 hover:text-gray-900">FAQ</a></li>
+                <li><Link href="/register" className="text-gray-500 hover:text-gray-900">Créer un compte</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">Métiers</h4>
-              <ul className="space-y-2">
-                {['Plombier', 'Électricien', 'Maçon', 'Rénovation'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-gray-500 hover:text-gray-900">{item}</a>
-                  </li>
-                ))}
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">Légal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/mentions-legales" className="text-gray-500 hover:text-gray-900">Mentions légales</Link></li>
+                <li><Link href="/confidentialite" className="text-gray-500 hover:text-gray-900">Confidentialité (RGPD)</Link></li>
+                <li><Link href="/cgu" className="text-gray-500 hover:text-gray-900">CGU</Link></li>
+                <li><Link href="/cgv" className="text-gray-500 hover:text-gray-900">CGV</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">Contact</h4>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2 text-sm text-gray-500">
-                  <Mail className="h-3.5 w-3.5" />pro@ecopye.fr
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                  <a href="mailto:support@ecopye.fr" className="hover:text-gray-900">support@ecopye.fr</a>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-gray-500">
-                  <Phone className="h-3.5 w-3.5" />01 23 45 67 89
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                  <a href="mailto:pro@ecopye.fr" className="hover:text-gray-900">pro@ecopye.fr (commercial)</a>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-gray-500">
-                  <MapPin className="h-3.5 w-3.5" />Paris, France
-                </li>
+                <li><Link href="/contact" className="text-gray-500 hover:text-gray-900">Page contact</Link></li>
               </ul>
+              <p className="mt-4 text-xs text-gray-400">
+                Hébergement : Hostinger International Ltd.
+              </p>
             </div>
           </div>
           <div className="mt-8 border-t border-gray-100 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-gray-400">© 2024 ECOPYE Pro Chantier. Tous droits réservés.</p>
+            <p className="text-xs text-gray-400">© 2026 ECOPYE Pro Chantier. Tous droits réservés.</p>
+            <p className="text-xs text-amber-600 font-medium">Service en phase bêta — certaines fonctionnalités évoluent</p>
           </div>
         </div>
       </footer>

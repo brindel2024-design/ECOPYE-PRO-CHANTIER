@@ -6,12 +6,15 @@ export default withAuth(
     const token = req.nextauth.token
     const pathname = req.nextUrl.pathname
 
-    // Redirection admin
+    // Redirection admin : non-admin tentant /admin -> /app/dashboard
     if (pathname.startsWith('/admin') && token?.role !== 'ECOPYE_ADMIN') {
       return NextResponse.redirect(new URL('/app/dashboard', req.url))
     }
 
-    return NextResponse.next()
+    const res = NextResponse.next()
+    // Empêcher l'indexation des zones privées
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+    return res
   },
   {
     callbacks: {

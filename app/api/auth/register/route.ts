@@ -25,20 +25,19 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12)
-    const siret = Math.floor(Math.random() * 90000000000000 + 10000000000000).toString()
 
     const company = await prisma.company.create({
       data: {
         name: data.companyName,
         ownerName: data.name,
-        siret,
+        siret: null,
         trade: data.trade as any,
         address: '',
         city: data.city,
         postalCode: '',
         phone: data.phone ?? '',
         email: data.email,
-        monthlyRevenueTarget: 15000,
+        monthlyRevenueTarget: 0,
       },
     })
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { TRIAL_DAYS, PLANS } from '@/lib/plans'
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -56,8 +57,8 @@ export async function POST(req: NextRequest) {
         companyId: company.id,
         plan: 'STARTER',
         status: 'ESSAI',
-        monthlyPrice: 29,
-        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        monthlyPrice: PLANS.STARTER.priceMonthly,
+        trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
       },
     })
 

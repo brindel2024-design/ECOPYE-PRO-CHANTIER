@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { Topbar } from '@/components/Topbar'
+import { TrialBanner } from '@/components/TrialBanner'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -30,6 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Contenu principal */}
       <div className="flex flex-col flex-1 lg:pl-64 min-h-screen">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <TrialBanner />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

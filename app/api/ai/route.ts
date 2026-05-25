@@ -81,40 +81,64 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Demande trop longue (max 4000 caractères).' }, { status: 400 })
   }
 
-  const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.5'
+  // Modèles gratuits OpenRouter (coût 0). Le premier est tenté, puis on bascule
+  // sur les suivants en cas de saturation (429), crédits (402) ou indispo (404/5xx).
+  // OPENROUTER_MODEL (env) reste prioritaire si défini.
+  const FREE_FALLBACKS = [
+    'deepseek/deepseek-v4-flash:free',
+    'openai/gpt-oss-120b:free',
+    'openai/gpt-oss-20b:free',
+  ]
+  const envModel = process.env.OPENROUTER_MODEL
+  const models = envModel
+    ? [envModel, ...FREE_FALLBACKS.filter((m) => m !== envModel)]
+    : FREE_FALLBACKS
+
+  const systemContent = `${GLOBAL_RULES}\nDate du jour : ${new Date().toLocaleDateString('fr-FR')}.\n\n${SYSTEM_PROMPTS[type as AiRequestType]}`
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: `${GLOBAL_RULES}\nDate du jour : ${new Date().toLocaleDateString('fr-FR')}.\n\n${SYSTEM_PROMPTS[type as AiRequestType]}` },
-          { role: 'user', content: prompt.trim() },
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
-    })
+    let content: string | undefined
+    let lastStatus = 0
+    let lastDetail = ''
 
-    if (!res.ok) {
-      const detail = await res.text()
-      console.error('OpenRouter error:', res.status, detail)
-      return NextResponse.json(
-        { error: "L'assistant IA est momentanément indisponible." },
-        { status: 502 }
-      )
+    for (const model of models) {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemContent },
+            { role: 'user', content: prompt.trim() },
+          ],
+          temperature: 0.7,
+          max_tokens: 1200,
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        content = data?.choices?.[0]?.message?.content
+        if (content) break
+        lastStatus = 502
+        lastDetail = 'réponse vide'
+        continue
+      }
+
+      lastStatus = res.status
+      lastDetail = await res.text()
+      console.error(`OpenRouter error (${model}):`, res.status, lastDetail)
+      // 429 (saturé), 402 (crédits), 404 (modèle indispo), 5xx → on tente le modèle suivant
+      if (![429, 402, 404, 500, 502, 503].includes(res.status)) break
     }
 
-    const data = await res.json()
-    const content: string | undefined = data?.choices?.[0]?.message?.content
     if (!content) {
+      console.error('AI: tous les modèles ont échoué', lastStatus, lastDetail)
       return NextResponse.json(
-        { error: "Réponse vide de l'assistant IA." },
+        { error: "L'assistant IA est momentanément indisponible (réessayez dans quelques instants)." },
         { status: 502 }
       )
     }

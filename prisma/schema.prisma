@@ -144,7 +144,7 @@ model Quote {
   company           Company     @relation(fields: [companyId], references: [id])
   clientId          String
   client            Client      @relation(fields: [clientId], references: [id])
-  number            String      @unique
+  number            String
   title             String
   description       String?
   status            String      @default("BROUILLON")
@@ -168,9 +168,9 @@ model Quote {
   invoices  Invoice[]
   projects  Project[]
 
+  @@unique([companyId, number])
   @@index([companyId])
   @@index([clientId])
-  @@index([number])
 }
 
 model QuoteLine {
@@ -201,7 +201,7 @@ model Invoice {
   quote        Quote?        @relation(fields: [quoteId], references: [id])
   projectId    String?
   project      Project?      @relation(fields: [projectId], references: [id])
-  number       String        @unique
+  number       String
   type         String        @default("FINALE")
   status       String        @default("BROUILLON")
   subtotalHT   Float         @default(0)
@@ -218,9 +218,9 @@ model Invoice {
   payments Payment[]
   lines    InvoiceLine[]
 
+  @@unique([companyId, number])
   @@index([companyId])
   @@index([clientId])
-  @@index([number])
 }
 
 model InvoiceLine {

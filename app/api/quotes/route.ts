@@ -70,16 +70,14 @@ export async function POST(request: Request) {
 
     const totals = computeTotals(lines)
     const year = new Date().getFullYear()
-    const count = await prisma.quote.count({
-      where: {
-        companyId,
-        createdAt: {
-          gte: new Date(`${year}-01-01T00:00:00.000Z`),
-          lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
-        },
-      },
+    // Numéro séquentiel par entreprise basé sur le plus grand numéro existant.
+    const last = await prisma.quote.findFirst({
+      where: { companyId, number: { startsWith: `DEV-${year}-` } },
+      orderBy: { number: 'desc' },
+      select: { number: true },
     })
-    const number = buildDocumentNumber('DEV', year, count)
+    const lastSeq = last ? parseInt(last.number.split('-')[2] ?? '0', 10) || 0 : 0
+    const number = buildDocumentNumber('DEV', year, lastSeq)
 
     const data = await prisma.quote.create({
       data: {

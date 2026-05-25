@@ -102,16 +102,15 @@ export async function POST(request: Request) {
 
     const totals = computeTotals(invoiceLines)
     const year = new Date().getFullYear()
-    const count = await prisma.invoice.count({
-      where: {
-        companyId,
-        createdAt: {
-          gte: new Date(`${year}-01-01T00:00:00.000Z`),
-          lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
-        },
-      },
+    // Numéro séquentiel par entreprise basé sur le plus grand numéro existant
+    // (robuste aux suppressions, contrairement à un simple count).
+    const last = await prisma.invoice.findFirst({
+      where: { companyId, number: { startsWith: `FAC-${year}-` } },
+      orderBy: { number: 'desc' },
+      select: { number: true },
     })
-    const number = buildDocumentNumber('FAC', year, count)
+    const lastSeq = last ? parseInt(last.number.split('-')[2] ?? '0', 10) || 0 : 0
+    const number = buildDocumentNumber('FAC', year, lastSeq)
 
     const data = await prisma.invoice.create({
       data: {

@@ -246,7 +246,7 @@ export default function QuoteDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden hidden sm:block">
             <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50">
                 <tr>
@@ -283,6 +283,30 @@ export default function QuoteDetailPage() {
                 </tr>
               </tfoot>
             </table>
+          </div>
+
+          {/* Mobile : cartes verticales */}
+          <div className="sm:hidden space-y-3">
+            {quote.lines.map(line => (
+              <div key={line.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                <p className="font-medium text-gray-900 text-sm mb-2">{line.label}</p>
+                <div className="grid grid-cols-2 gap-y-1.5 gap-x-3 text-xs">
+                  <span className="text-gray-500">Quantité</span>
+                  <span className="text-right text-gray-700">{line.quantity} {line.unit}</span>
+                  <span className="text-gray-500">Prix unitaire HT</span>
+                  <span className="text-right text-gray-700">{formatCurrency(line.unitPriceHT)}</span>
+                  <span className="text-gray-500">TVA</span>
+                  <span className="text-right text-gray-700">{line.vatRate} %</span>
+                  <span className="text-gray-600 font-medium border-t border-gray-100 pt-1.5">Total HT</span>
+                  <span className="text-right font-semibold text-gray-900 border-t border-gray-100 pt-1.5">{formatCurrency(line.totalHT)}</span>
+                </div>
+              </div>
+            ))}
+            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 space-y-1.5 text-sm">
+              <div className="flex justify-between text-gray-600"><span>Sous-total HT</span><span className="font-medium text-gray-900">{formatCurrency(quote.subtotalHT)}</span></div>
+              <div className="flex justify-between text-gray-600"><span>TVA</span><span className="font-medium text-gray-900">{formatCurrency(quote.vatAmount)}</span></div>
+              <div className="flex justify-between border-t border-gray-200 pt-1.5"><span className="font-bold text-gray-900">Total TTC</span><span className="font-bold text-blue-700">{formatCurrency(quote.totalTTC)}</span></div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">

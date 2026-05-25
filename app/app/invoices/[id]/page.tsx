@@ -270,15 +270,16 @@ export default function InvoiceDetailPage() {
           <p className="text-sm text-gray-500">{invoice.client.email}</p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+        {/* Desktop : tableau */}
+        <div className="hidden sm:block">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-2 text-gray-600 font-semibold">Désignation</th>
                 <th className="text-right py-2 text-gray-600 font-semibold w-16">Qté</th>
                 <th className="text-right py-2 text-gray-600 font-semibold w-20">Unité</th>
                 <th className="text-right py-2 text-gray-600 font-semibold w-28">P.U. HT</th>
-                <th className="text-right py-2 text-gray-600 font-semibold w-28">TVA</th>
+                <th className="text-right py-2 text-gray-600 font-semibold w-20">TVA</th>
                 <th className="text-right py-2 text-gray-600 font-semibold w-28">Total HT</th>
               </tr>
             </thead>
@@ -295,6 +296,25 @@ export default function InvoiceDetailPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile : cartes verticales */}
+        <div className="sm:hidden space-y-3">
+          {invoice.lines.map((line) => (
+            <div key={line.id} className="rounded-lg border border-gray-200 p-3">
+              <p className="font-medium text-gray-900 mb-2">{line.label}</p>
+              <div className="grid grid-cols-2 gap-y-1.5 gap-x-3 text-xs">
+                <span className="text-gray-500">Quantité</span>
+                <span className="text-right text-gray-700">{line.quantity} {line.unit}</span>
+                <span className="text-gray-500">Prix unitaire HT</span>
+                <span className="text-right text-gray-700">{formatCurrency(line.unitPriceHT)}</span>
+                <span className="text-gray-500">TVA</span>
+                <span className="text-right text-gray-700">{line.vatRate} %</span>
+                <span className="text-gray-600 font-medium border-t border-gray-100 pt-1.5">Total HT</span>
+                <span className="text-right font-semibold text-gray-900 border-t border-gray-100 pt-1.5">{formatCurrency(line.totalHT)}</span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="flex justify-end">

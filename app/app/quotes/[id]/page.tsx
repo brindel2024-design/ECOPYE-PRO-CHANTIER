@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, Send, CheckCircle2, XCircle, Download, FolderKanban, ArrowRight, Loader2, Trash2,
+  ArrowLeft, Send, CheckCircle2, XCircle, Download, FolderKanban, ArrowRight, Loader2, Trash2, Pencil,
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import { QUOTE_STATUS_LABELS } from '@/lib/types'
@@ -184,6 +184,12 @@ export default function QuoteDetailPage() {
           </button>
           {quote.status === 'BROUILLON' && (
             <>
+              <Link
+                href={`/app/quotes/${id}/edit`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <Pencil className="h-4 w-4" />Modifier
+              </Link>
               <button
                 onClick={handleSend}
                 disabled={actionLoading}

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, AlertTriangle, Download, Mail, CreditCard, CheckCircle, X, Loader2, Trash2,
+  ArrowLeft, AlertTriangle, Download, Mail, CreditCard, CheckCircle, X, Loader2, Trash2, Pencil,
 } from 'lucide-react'
 import { INVOICE_STATUS_LABELS } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -371,13 +371,21 @@ export default function InvoiceDetailPage() {
           </button>
         )}
         {invoice.status === 'BROUILLON' && (
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="ml-auto border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
-          >
-            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}Supprimer le brouillon
-          </button>
+          <>
+            <Link
+              href={`/app/invoices/${id}/edit`}
+              className="ml-auto border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+            >
+              <Pencil className="w-4 h-4" />Modifier
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+            >
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}Supprimer le brouillon
+            </button>
+          </>
         )}
       </div>
 

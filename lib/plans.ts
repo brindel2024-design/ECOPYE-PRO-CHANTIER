@@ -17,7 +17,7 @@ export const PLANS: Record<PlanKey, Plan> = {
   STARTER: {
     key: 'STARTER',
     name: 'Starter',
-    priceMonthly: 29,
+    priceMonthly: 19,
     currency: 'eur',
     lookupKey: 'ecopye_pro_starter_monthly',
     description: "L'essentiel pour démarrer son activité d'artisan",
@@ -33,7 +33,7 @@ export const PLANS: Record<PlanKey, Plan> = {
   PRO: {
     key: 'PRO',
     name: 'Pro',
-    priceMonthly: 79,
+    priceMonthly: 39,
     currency: 'eur',
     lookupKey: 'ecopye_pro_pro_monthly',
     description: 'Pour les artisans qui veulent passer à la vitesse supérieure',
@@ -50,7 +50,7 @@ export const PLANS: Record<PlanKey, Plan> = {
   PREMIUM: {
     key: 'PREMIUM',
     name: 'Premium',
-    priceMonthly: 149,
+    priceMonthly: 79,
     currency: 'eur',
     lookupKey: 'ecopye_pro_premium_monthly',
     description: 'Pour les structures établies, multi-équipes',

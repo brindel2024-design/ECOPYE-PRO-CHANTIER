@@ -17,9 +17,9 @@ export default function CGVPage() {
         Trois formules sont proposées en abonnement mensuel reconductible tacitement&nbsp;:
       </p>
       <ul>
-        <li><strong>Starter</strong> — 29 € HT / mois</li>
-        <li><strong>Pro</strong> — 79 € HT / mois</li>
-        <li><strong>Premium</strong> — 149 € HT / mois</li>
+        <li><strong>Starter</strong> — 19 € HT / mois</li>
+        <li><strong>Pro</strong> — 39 € HT / mois</li>
+        <li><strong>Premium</strong> — 79 € HT / mois</li>
       </ul>
       <p>
         Les tarifs sont indiqués hors taxes. La TVA française au taux en vigueur (20 % à ce jour)

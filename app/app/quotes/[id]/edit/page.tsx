@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { formatCurrency, isValidISODate } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 interface LineForm {
   label: string
@@ -110,7 +111,7 @@ export default function EditQuotePage() {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Valable jusqu&apos;au</label>
-          <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          <DateField value={expiresAt} onChange={setExpiresAt} />
         </div>
       </div>
 

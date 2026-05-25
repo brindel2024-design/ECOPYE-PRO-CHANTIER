@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { formatCurrency, isValidISODate, isoDateOffset } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 interface QuoteLine {
   id: string
@@ -277,12 +278,7 @@ export default function NewQuotePage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Devis valable jusqu&apos;au</label>
-                <input
-                  type="date"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                />
+                <DateField value={expiresAt} onChange={setExpiresAt} />
                 <p className="mt-1.5 text-xs text-gray-400">Par défaut : 30 jours. Cette date figure sur le PDF du devis.</p>
               </div>
               <div>

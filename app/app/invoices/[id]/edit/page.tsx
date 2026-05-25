@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { formatCurrency, isValidISODate } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 interface LineForm {
   label: string
@@ -120,7 +121,7 @@ export default function EditInvoicePage() {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Date d&apos;échéance</label>
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          <DateField value={dueDate} onChange={setDueDate} />
         </div>
       </div>
 

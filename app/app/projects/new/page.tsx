@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { isValidISODate } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 interface ClientOption {
   id: string
@@ -237,11 +238,11 @@ export default function NewProjectPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Date de début</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputClass} />
+              <DateField value={startDate} onChange={setStartDate} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Date de fin prévue</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputClass} />
+              <DateField value={endDate} onChange={setEndDate} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Budget prévu (€)</label>
@@ -275,12 +276,7 @@ export default function NewProjectPage() {
                     />
                   </div>
                   <div className="col-span-4">
-                    <input
-                      type="date"
-                      value={step.dueDate}
-                      onChange={(e) => updateStep(step.id, 'dueDate', e.target.value)}
-                      className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                    />
+                    <DateField value={step.dueDate} onChange={(v) => updateStep(step.id, 'dueDate', v)} />
                   </div>
                   <div className="col-span-1 flex justify-end">
                     <button type="button" onClick={() => removeStep(step.id)} className="text-gray-300 hover:text-red-500">

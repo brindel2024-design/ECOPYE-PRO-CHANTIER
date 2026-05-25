@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { formatCurrency, isValidISODate } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 interface ClientOption {
   id: string
@@ -216,7 +217,7 @@ export default function NewInvoicePage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Date d&apos;échéance</label>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputClass} />
+              <DateField value={dueDate} onChange={setDueDate} />
             </div>
           </div>
 

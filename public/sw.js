@@ -1,9 +1,5 @@
-const CACHE = 'ecopye-pro-v1'
-const STATIC = [
-  '/',
-  '/login',
-  '/offline',
-]
+const CACHE = 'ecopye-pro-v2'
+const STATIC = ['/offline']
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -23,6 +19,16 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return
   if (e.request.url.includes('/api/')) return
 
+  // Navigations (pages HTML) : toujours réseau, jamais de cache HTML obsolète.
+  // Évite que d'anciens bundles restent affichés après un déploiement.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match('/offline'))
+    )
+    return
+  }
+
+  // Assets statiques (JS/CSS/images à hash) : réseau d'abord, cache en secours hors-ligne.
   e.respondWith(
     fetch(e.request)
       .then(res => {
@@ -30,6 +36,6 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, clone))
         return res
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('/offline')))
+      .catch(() => caches.match(e.request))
   )
 })

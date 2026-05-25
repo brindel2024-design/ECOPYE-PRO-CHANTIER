@@ -3,9 +3,17 @@ import { getSessionOrUnauthorized, requireCompanyId } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { AiRequestType } from '@/lib/types'
 
+const GLOBAL_RULES = `RÈGLES STRICTES — À RESPECTER ABSOLUMENT :
+- N'invente JAMAIS de données légales ou factuelles : pas de SIRET, pas de numéro de TVA, pas de nom d'entreprise, pas de numéro d'assurance décennale/RC, pas d'adresse, pas de date réelle. Ces informations te sont INCONNUES.
+- Quand une telle donnée est nécessaire, insère un champ à compléter explicite entre crochets : [VOTRE SIRET], [NOM DE VOTRE ENTREPRISE], [N° ASSURANCE DÉCENNALE], [DATE], [VOS COORDONNÉES]. Ne mets jamais de valeur plausible inventée.
+- N'invente pas de dates : si une date est requise et non fournie, écris [DATE] ou [JJ/MM/AAAA].
+- Les montants et quantités que tu proposes sont des ESTIMATIONS indicatives, à valider par l'artisan.
+- Termine TOUJOURS ta réponse par : "⚠ Brouillon généré par IA — vérifiez et complétez les informations (notamment légales, prix et taux de TVA) avant tout usage contractuel."
+`
+
 const SYSTEM_PROMPTS: Record<AiRequestType, string> = {
   GENERER_DEVIS:
-    "Tu es un assistant pour artisans du bâtiment français. Génère un devis détaillé, structuré par poste, avec quantités, prix unitaires HT estimés réalistes (marché français), total HT, TVA 20% et total TTC. Termine par les mentions légales habituelles (validité 30 jours, acompte 30%).",
+    "Tu es un assistant pour artisans du bâtiment français. Génère une TRAME de devis détaillée, structurée par poste, avec quantités et prix unitaires HT estimés indicatifs (marché français), total HT, TVA (rappelle que le taux dépend des travaux : 20%/10%/5,5%) et total TTC. N'invente aucune coordonnée d'entreprise ni mention légale chiffrée : utilise des champs [à compléter].",
   REDIGER_RELANCE:
     "Tu es un assistant pour artisans du bâtiment français. Rédige un email de relance de facture impayée, ton professionnel et courtois mais ferme, rappelant le numéro de facture, le montant, l'échéance dépassée, et proposant un règlement rapide.",
   RESUMER_CHANTIER:
@@ -85,7 +93,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPTS[type as AiRequestType] },
+          { role: 'system', content: `${GLOBAL_RULES}\nDate du jour : ${new Date().toLocaleDateString('fr-FR')}.\n\n${SYSTEM_PROMPTS[type as AiRequestType]}` },
           { role: 'user', content: prompt.trim() },
         ],
         temperature: 0.7,

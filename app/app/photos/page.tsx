@@ -224,7 +224,7 @@ export default function PhotosPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900">Ajouter une photo</h2>
-              <button onClick={() => setShowUpload(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowUpload(false)} aria-label="Fermer la fenêtre" className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Fichier image *</label>

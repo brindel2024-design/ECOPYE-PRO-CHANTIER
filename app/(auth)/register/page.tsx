@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { HardHat, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { PLANS, PLAN_ORDER, type PlanKey } from '@/lib/plans'
+import { formatCurrency } from '@/lib/utils'
 
 const trades = [
   { value: 'PLOMBIER', label: 'Plombier' },
@@ -19,7 +21,6 @@ const trades = [
 ]
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -34,6 +35,7 @@ export default function RegisterPage() {
     phone: '',
   })
   const [acceptTerms, setAcceptTerms] = useState(false)
+  const [plan, setPlan] = useState<PlanKey>('PRO')
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -41,34 +43,62 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (step < 2) {
+    setError('')
+
+    if (step === 1) {
       setStep(2)
       return
     }
 
-    if (!acceptTerms) {
-      setError('Vous devez accepter les CGU et la politique de confidentialité pour créer un compte.')
+    if (step === 2) {
+      if (!acceptTerms) {
+        setError('Vous devez accepter les CGU et la politique de confidentialité pour créer un compte.')
+        return
+      }
+      setStep(3)
       return
     }
 
+    // Étape 3 : création du compte → connexion → paiement (carte + essai 14 j)
     setLoading(true)
-    setError('')
-
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, plan }),
       })
       const data = await res.json()
-
       if (!res.ok) {
         setError(data.error ?? 'Erreur lors de la création du compte.')
         setLoading(false)
         return
       }
 
-      setStep(3)
+      // Connexion automatique
+      const signinRes = await signIn('credentials', {
+        redirect: false,
+        email: form.email,
+        password: form.password,
+      })
+      if (signinRes?.error) {
+        setError('Compte créé, mais connexion automatique impossible. Connectez-vous puis choisissez votre formule.')
+        setLoading(false)
+        return
+      }
+
+      // Redirection vers le paiement Stripe (carte obligatoire, essai 14 jours)
+      const co = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, successPath: '/app/dashboard?welcome=1' }),
+      })
+      const coData = await co.json()
+      if (co.ok && coData.url) {
+        window.location.href = coData.url
+        return
+      }
+      setError(coData.error ?? "Impossible de démarrer le paiement. Réessayez depuis votre espace.")
+      setLoading(false)
     } catch {
       setError('Erreur réseau. Veuillez réessayer.')
       setLoading(false)
@@ -90,45 +120,32 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Étape succès */}
-          {step === 3 ? (
-            <div className="text-center py-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mx-auto mb-4">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Compte créé !</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Votre espace artisan est prêt. Connectez-vous pour commencer.
-              </p>
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-              >
-                Se connecter
-              </button>
-            </div>
-          ) : (
+          {(
             <>
               {/* Indicateur d'étape */}
               <div className="flex items-center gap-2 mb-8">
-                {[1, 2].map((s) => (
+                {[1, 2, 3].map((s) => (
                   <div key={s} className="flex items-center gap-2 flex-1">
                     <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${s <= step ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
                       {s}
                     </div>
                     <span className={`text-xs font-medium ${s <= step ? 'text-blue-600' : 'text-gray-400'}`}>
-                      {s === 1 ? 'Votre profil' : 'Votre entreprise'}
+                      {s === 1 ? 'Profil' : s === 2 ? 'Entreprise' : 'Formule'}
                     </span>
-                    {s < 2 && <div className="flex-1 h-px bg-gray-200" />}
+                    {s < 3 && <div className="flex-1 h-px bg-gray-200" />}
                   </div>
                 ))}
               </div>
 
               <h1 className="text-xl font-bold text-gray-900 mb-1">
-                {step === 1 ? 'Créez votre compte' : 'Votre entreprise'}
+                {step === 1 ? 'Créez votre compte' : step === 2 ? 'Votre entreprise' : 'Choisissez votre formule'}
               </h1>
               <p className="text-sm text-gray-500 mb-6">
-                {step === 1 ? 'Vos informations personnelles' : 'Informations de votre entreprise'}
+                {step === 1
+                  ? 'Vos informations personnelles'
+                  : step === 2
+                  ? 'Informations de votre entreprise'
+                  : 'Essai gratuit 14 jours — carte requise, sans engagement, résiliable à tout moment'}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -247,24 +264,61 @@ export default function RegisterPage() {
                   </label>
                 )}
 
+                {step === 3 && (
+                  <div className="space-y-3">
+                    {PLAN_ORDER.map((key) => {
+                      const p = PLANS[key]
+                      const selected = plan === key
+                      return (
+                        <button
+                          type="button"
+                          key={key}
+                          onClick={() => setPlan(key)}
+                          className={`w-full text-left rounded-xl border-2 p-4 transition-colors ${selected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
+                                {selected && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                              </span>
+                              <span className="font-semibold text-gray-900">{p.name}</span>
+                              {p.highlight && (
+                                <span className="text-[10px] font-bold uppercase tracking-wide bg-blue-600 text-white px-1.5 py-0.5 rounded">Populaire</span>
+                              )}
+                            </div>
+                            <div className="text-right whitespace-nowrap">
+                              <span className="text-lg font-bold text-gray-900">{formatCurrency(p.priceMonthly)}</span>
+                              <span className="text-xs text-gray-500"> /mois</span>
+                            </div>
+                          </div>
+                          <p className="mt-1 text-xs text-gray-500">{p.description}</p>
+                        </button>
+                      )
+                    })}
+                    <p className="text-xs text-gray-500 text-center pt-1 leading-relaxed">
+                      Carte demandée maintenant, mais <strong>aucun prélèvement avant 14 jours</strong>. Résiliable à tout moment avant la fin de l&apos;essai. Paiement sécurisé par Stripe.
+                    </p>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading || (step === 2 && !acceptTerms)}
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Création en cours...</>
-                  ) : step === 1 ? (
-                    'Continuer →'
+                    <><Loader2 className="h-4 w-4 animate-spin" />Redirection vers le paiement…</>
+                  ) : step === 3 ? (
+                    'Créer mon compte et activer l’essai'
                   ) : (
-                    'Créer mon compte'
+                    'Continuer →'
                   )}
                 </button>
 
-                {step === 2 && (
+                {step > 1 && (
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(step - 1)}
                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     ← Retour

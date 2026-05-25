@@ -67,13 +67,36 @@ export async function POST(request: Request) {
     const origin =
       request.headers.get('origin') || process.env.NEXTAUTH_URL || 'https://pro.ecopye.fr'
 
+    // Période d'essai : on conserve la date de fin d'essai fixée à l'inscription
+    // (J+14). La carte est collectée à l'inscription mais aucun prélèvement n'a
+    // lieu avant cette date. Si l'essai est déjà passé, prélèvement immédiat.
+    const nowSec = Math.floor(Date.now() / 1000)
+    const trialEndSec = company.subscription?.trialEndsAt
+      ? Math.floor(new Date(company.subscription.trialEndsAt).getTime() / 1000)
+      : 0
+    const subscriptionData: {
+      metadata: Record<string, string>
+      trial_end?: number
+    } = { metadata: { companyId, plan } }
+    // Stripe exige trial_end > maintenant ; on garde une marge d'1h.
+    if (trialEndSec > nowSec + 3600 && !company.subscription?.stripeSubscriptionId) {
+      subscriptionData.trial_end = trialEndSec
+    }
+
+    const successPath =
+      typeof body.successPath === 'string' && body.successPath.startsWith('/app')
+        ? body.successPath
+        : '/app/settings/billing?subscribed=1'
+
     const checkout = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { companyId, plan },
-      subscription_data: { metadata: { companyId, plan } },
-      success_url: `${origin}/app/settings/billing?subscribed=1`,
+      subscription_data: subscriptionData,
+      // Carte obligatoire même pendant l'essai
+      payment_method_collection: 'always',
+      success_url: `${origin}${successPath}`,
       cancel_url: `${origin}/pricing?canceled=1`,
       allow_promotion_codes: true,
     })

@@ -12,6 +12,7 @@ const registerSchema = z.object({
   trade: z.string(),
   city: z.string().min(2),
   phone: z.string().optional(),
+  plan: z.enum(['STARTER', 'PRO', 'PREMIUM']).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -51,12 +52,13 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    const chosenPlan = data.plan ?? 'STARTER'
     await prisma.subscription.create({
       data: {
         companyId: company.id,
-        plan: 'STARTER',
+        plan: chosenPlan,
         status: 'ESSAI',
-        monthlyPrice: PLANS.STARTER.priceMonthly,
+        monthlyPrice: PLANS[chosenPlan].priceMonthly,
         trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
       },
     })

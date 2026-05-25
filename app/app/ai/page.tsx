@@ -218,7 +218,7 @@ export default function AiPage() {
           Générez des devis, rédigez des relances, préparez vos comptes rendus — en quelques secondes.
         </p>
         <span className="inline-block bg-blue-800 bg-opacity-60 text-blue-100 text-xs px-3 py-1 rounded-full">
-          ⚠ Mode simulation — Les réponses sont des exemples prédéfinis
+          ⚠ Brouillons générés par IA — vérifiez et complétez (montants, TVA, mentions légales) avant tout usage
         </span>
       </div>
 

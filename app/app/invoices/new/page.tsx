@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, isValidISODate } from '@/lib/utils'
 
 interface ClientOption {
   id: string
@@ -108,6 +108,10 @@ export default function NewInvoicePage() {
     }
     if (!quoteId && lines.length === 0) {
       setError('Ajoutez au moins une ligne de facture')
+      return
+    }
+    if (dueDate && !isValidISODate(dueDate)) {
+      setError("La date d'échéance est incomplète ou invalide. Saisissez une date valide ou laissez le champ vide.")
       return
     }
     setSaving(true)

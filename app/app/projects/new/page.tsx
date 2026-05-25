@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { isValidISODate } from '@/lib/utils'
 
 interface ClientOption {
   id: string
@@ -96,6 +97,24 @@ export default function NewProjectPage() {
     if (!title.trim()) {
       setError('Le titre du chantier est obligatoire')
       return
+    }
+    if (startDate && !isValidISODate(startDate)) {
+      setError('La date de début est incomplète ou invalide. Saisissez une date valide ou laissez le champ vide.')
+      return
+    }
+    if (endDate && !isValidISODate(endDate)) {
+      setError('La date de fin est incomplète ou invalide. Saisissez une date valide ou laissez le champ vide.')
+      return
+    }
+    if (startDate && endDate && endDate < startDate) {
+      setError('La date de fin prévue doit être postérieure ou égale à la date de début.')
+      return
+    }
+    for (const s of steps) {
+      if (s.title.trim() && s.dueDate && !isValidISODate(s.dueDate)) {
+        setError(`L'échéance de l'étape « ${s.title.trim()} » est invalide.`)
+        return
+      }
     }
     setSaving(true)
     try {

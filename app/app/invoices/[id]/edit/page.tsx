@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, isValidISODate } from '@/lib/utils'
 
 interface LineForm {
   label: string
@@ -70,6 +70,10 @@ export default function EditInvoicePage() {
     setError('')
     if (lines.length === 0 || lines.some((l) => !l.label.trim())) {
       setError('Chaque ligne doit avoir une désignation.')
+      return
+    }
+    if (dueDate && !isValidISODate(dueDate)) {
+      setError("La date d'échéance est incomplète ou invalide.")
       return
     }
     setSaving(true)

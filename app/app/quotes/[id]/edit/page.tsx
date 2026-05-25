@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, isValidISODate } from '@/lib/utils'
 
 interface LineForm {
   label: string
@@ -64,6 +64,9 @@ export default function EditQuotePage() {
     if (!title.trim()) { setError('Le titre est obligatoire.'); return }
     if (lines.length === 0 || lines.some((l) => !l.label.trim())) {
       setError('Chaque ligne doit avoir une désignation.'); return
+    }
+    if (expiresAt && !isValidISODate(expiresAt)) {
+      setError('La date de validité est incomplète ou invalide.'); return
     }
     setSaving(true)
     const res = await fetch(`/api/quotes/${id}`, {

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Trash2, Sparkles, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { ArrowLeft, Plus, Trash2, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { formatCurrency, isValidISODate, isoDateOffset } from '@/lib/utils'
 
 interface QuoteLine {
   id: string
@@ -69,9 +69,10 @@ export default function NewQuotePage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [notes, setNotes] = useState('')
+  const [expiresAt, setExpiresAt] = useState(isoDateOffset(30))
   const [depositPercentage, setDepositPercentage] = useState(30)
   const [lines, setLines] = useState<QuoteLine[]>([])
-  const [aiLoading, setAiLoading] = useState(false)
+  const [templateLoading, setTemplateLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -127,15 +128,14 @@ export default function NewQuotePage() {
     setLines((prev) => prev.filter((l) => l.id !== id))
   }
 
-  async function generateAI(templateKey: string) {
-    setAiLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
+  function applyTemplate(templateKey: string) {
+    setTemplateLoading(true)
     const template = AI_TEMPLATES[templateKey]
     if (template) {
       setTitle(template.title)
       setLines(template.lines.map((l) => ({ ...l, id: Math.random().toString(36).slice(2) })))
     }
-    setAiLoading(false)
+    setTemplateLoading(false)
   }
 
   const subtotalHT = lines.reduce((s, l) => s + l.totalHT, 0)
@@ -153,6 +153,10 @@ export default function NewQuotePage() {
       setError("L'intitulé du devis est obligatoire")
       return
     }
+    if (expiresAt && !isValidISODate(expiresAt)) {
+      setError("La date de validité est incomplète ou invalide. Saisissez une date valide ou laissez le champ vide.")
+      return
+    }
     setSaving(true)
     try {
       const res = await fetch('/api/quotes', {
@@ -164,6 +168,7 @@ export default function NewQuotePage() {
           description: description.trim() || undefined,
           depositPercentage,
           notes: notes.trim() || undefined,
+          expiresAt: expiresAt || undefined,
           lines: lines.map((l) => ({
             label: l.label,
             quantity: l.quantity,
@@ -208,13 +213,13 @@ export default function NewQuotePage() {
         </div>
       )}
 
-      {/* Génération IA */}
+      {/* Modèles pré-remplis */}
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-5 w-5 text-blue-600" />
-          <h2 className="text-sm font-semibold text-blue-900">Copilote IA — Génération automatique</h2>
+          <FileText className="h-5 w-5 text-blue-600" />
+          <h2 className="text-sm font-semibold text-blue-900">Modèles de devis — point de départ</h2>
         </div>
-        <p className="text-xs text-blue-700 mb-3">Choisissez un type de chantier et le copilote génère automatiquement vos lignes de devis :</p>
+        <p className="text-xs text-blue-700 mb-3">Pré-remplissez vos lignes à partir d&apos;un modèle type, puis ajustez les quantités, prix et taux de TVA selon votre chantier :</p>
         <div className="flex flex-wrap gap-2">
           {[
             { key: 'renovation-sdb', label: '🚿 Rénovation salle de bain' },
@@ -223,11 +228,11 @@ export default function NewQuotePage() {
           ].map((t) => (
             <button
               key={t.key}
-              onClick={() => generateAI(t.key)}
-              disabled={aiLoading}
+              onClick={() => applyTemplate(t.key)}
+              disabled={templateLoading}
               className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
             >
-              {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              {templateLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
               {t.label}
             </button>
           ))}
@@ -269,6 +274,16 @@ export default function NewQuotePage() {
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Ex: Rénovation salle de bain 6m²"
                 />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Devis valable jusqu&apos;au</label>
+                <input
+                  type="date"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1.5 text-xs text-gray-400">Par défaut : 30 jours. Cette date figure sur le PDF du devis.</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Description (optionnel)</label>

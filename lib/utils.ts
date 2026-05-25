@@ -30,6 +30,30 @@ export function formatDateLong(date: Date | string | null | undefined): string {
   }).format(new Date(date))
 }
 
+/**
+ * Vérifie qu'une chaîne est une date ISO `YYYY-MM-DD` réelle (mois/jour valides).
+ * Un `<input type="date">` renvoie soit une chaîne vide, soit une date valide,
+ * mais on revalide côté JS pour bloquer toute valeur incohérente avant envoi.
+ */
+export function isValidISODate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const [y, m, d] = value.split('-').map(Number)
+  if (m < 1 || m > 12 || d < 1 || d > 31) return false
+  const date = new Date(Date.UTC(y, m - 1, d))
+  return (
+    date.getUTCFullYear() === y &&
+    date.getUTCMonth() + 1 === m &&
+    date.getUTCDate() === d
+  )
+}
+
+/** Renvoie une date ISO `YYYY-MM-DD` décalée de `days` jours par rapport à aujourd'hui. */
+export function isoDateOffset(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
 export function generateQuoteNumber(): string {
   const year = new Date().getFullYear()
   const rand = Math.floor(Math.random() * 9000) + 1000

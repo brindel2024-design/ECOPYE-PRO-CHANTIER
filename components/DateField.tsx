@@ -1,13 +1,19 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 /**
  * Sélecteur de date robuste (Jour / Mois / Année) — remplace `<input type="date">`
  * dont la saisie manuelle est peu fiable (segments vides, focus aléatoire,
  * valeur silencieusement vide → enregistrée en null).
  *
+ * Le composant conserve son propre état pour les trois parties : choisir le jour
+ * seul ne réinitialise pas la liste. Une chaîne ISO `YYYY-MM-DD` n'est émise que
+ * lorsque les trois parties sont renseignées ; sinon `onChange('')`.
+ *
  * `value`    : chaîne ISO `YYYY-MM-DD` ou '' (vide).
  * `onChange` : reçoit une chaîne ISO valide `YYYY-MM-DD`, ou '' tant que la
- *              date n'est pas entièrement et valablement renseignée.
+ *              date n'est pas entièrement renseignée.
  */
 
 const MONTHS = [
@@ -16,16 +22,21 @@ const MONTHS = [
 ]
 
 function daysInMonth(year: number, month: number): number {
-  // month: 1-12 ; jour 0 du mois suivant = dernier jour du mois courant
   return new Date(year, month, 0).getDate()
+}
+
+function partsFromIso(value: string): { d: string; m: string; y: string } {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-')
+    return { d: String(Number(d)), m: String(Number(m)), y }
+  }
+  return { d: '', m: '', y: '' }
 }
 
 interface DateFieldProps {
   value: string
   onChange: (iso: string) => void
-  /** Première année proposée (défaut : année courante - 1). */
   startYear?: number
-  /** Nombre d'années proposées (défaut : 6). */
   yearSpan?: number
   id?: string
   className?: string
@@ -39,27 +50,31 @@ export default function DateField({
   id,
   className = '',
 }: DateFieldProps) {
-  const [y, m, d] = value && /^\d{4}-\d{2}-\d{2}$/.test(value)
-    ? value.split('-').map(Number)
-    : [NaN, NaN, NaN]
+  const initial = partsFromIso(value)
+  const [day, setDay] = useState(initial.d)
+  const [month, setMonth] = useState(initial.m)
+  const [year, setYear] = useState(initial.y)
 
-  const now = new Date()
-  const firstYear = startYear ?? now.getFullYear() - 1
-  const years = Array.from({ length: yearSpan }, (_, i) => firstYear + i)
+  // Re-synchronise si la valeur externe change (ex: chargement async d'un formulaire d'édition).
+  useEffect(() => {
+    const p = partsFromIso(value)
+    setDay(p.d)
+    setMonth(p.m)
+    setYear(p.y)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
 
-  const selDay = Number.isNaN(d) ? '' : String(d)
-  const selMonth = Number.isNaN(m) ? '' : String(m)
-  const selYear = Number.isNaN(y) ? '' : String(y)
-
-  function emit(day: string, month: string, year: string) {
-    if (!day || !month || !year) {
+  function commit(nextDay: string, nextMonth: string, nextYear: string) {
+    setDay(nextDay)
+    setMonth(nextMonth)
+    setYear(nextYear)
+    if (!nextDay || !nextMonth || !nextYear) {
       onChange('')
       return
     }
-    const yy = Number(year)
-    const mm = Number(month)
-    let dd = Number(day)
-    // Corrige un jour impossible (ex: 31 février → dernier jour du mois)
+    const yy = Number(nextYear)
+    const mm = Number(nextMonth)
+    let dd = Number(nextDay)
     const max = daysInMonth(yy, mm)
     if (dd > max) dd = max
     onChange(
@@ -69,9 +84,10 @@ export default function DateField({
     )
   }
 
-  // Nombre de jours du mois sélectionné (sinon 31 par défaut)
-  const maxDays =
-    selMonth && selYear ? daysInMonth(Number(selYear), Number(selMonth)) : 31
+  const now = new Date()
+  const firstYear = startYear ?? now.getFullYear() - 1
+  const years = Array.from({ length: yearSpan }, (_, i) => firstYear + i)
+  const maxDays = month && year ? daysInMonth(Number(year), Number(month)) : 31
   const days = Array.from({ length: maxDays }, (_, i) => i + 1)
 
   const selectClass =
@@ -81,19 +97,19 @@ export default function DateField({
     <div id={id} className={`grid grid-cols-3 gap-2 ${className}`}>
       <select
         aria-label="Jour"
-        value={selDay}
-        onChange={(e) => emit(e.target.value, selMonth, selYear)}
+        value={day}
+        onChange={(e) => commit(e.target.value, month, year)}
         className={selectClass}
       >
         <option value="">Jour</option>
-        {days.map((day) => (
-          <option key={day} value={day}>{day}</option>
+        {days.map((dd) => (
+          <option key={dd} value={dd}>{dd}</option>
         ))}
       </select>
       <select
         aria-label="Mois"
-        value={selMonth}
-        onChange={(e) => emit(selDay, e.target.value, selYear)}
+        value={month}
+        onChange={(e) => commit(day, e.target.value, year)}
         className={selectClass}
       >
         <option value="">Mois</option>
@@ -103,13 +119,13 @@ export default function DateField({
       </select>
       <select
         aria-label="Année"
-        value={selYear}
-        onChange={(e) => emit(selDay, selMonth, e.target.value)}
+        value={year}
+        onChange={(e) => commit(day, month, e.target.value)}
         className={selectClass}
       >
         <option value="">Année</option>
-        {years.map((year) => (
-          <option key={year} value={year}>{year}</option>
+        {years.map((yy) => (
+          <option key={yy} value={yy}>{yy}</option>
         ))}
       </select>
     </div>

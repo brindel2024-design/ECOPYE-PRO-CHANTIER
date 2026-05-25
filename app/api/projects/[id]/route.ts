@@ -108,6 +108,11 @@ export async function DELETE(_request: Request, { params }: Params) {
       )
     }
 
+    // Détacher les références optionnelles avant suppression (évite les erreurs de contrainte FK).
+    // Les étapes et photos sont en cascade ; factures et événements référencent projectId en option.
+    await prisma.invoice.updateMany({ where: { projectId: params.id }, data: { projectId: null } })
+    await prisma.scheduleEvent.updateMany({ where: { projectId: params.id }, data: { projectId: null } })
+    await prisma.document.updateMany({ where: { projectId: params.id }, data: { projectId: null } })
     await prisma.project.delete({ where: { id: params.id } })
 
     return NextResponse.json({ success: true })

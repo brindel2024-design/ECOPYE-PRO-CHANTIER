@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, Send, CheckCircle2, XCircle, Download, FolderKanban, ArrowRight, Loader2,
+  ArrowLeft, Send, CheckCircle2, XCircle, Download, FolderKanban, ArrowRight, Loader2, Trash2,
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import { QUOTE_STATUS_LABELS } from '@/lib/types'
@@ -60,9 +60,22 @@ export default function QuoteDetailPage() {
   async function handleSend() {
     setActionLoading(true)
     const res = await fetch(`/api/quotes/${id}/send`, { method: 'POST' })
+    const j = await res.json().catch(() => ({}))
     setActionLoading(false)
     if (res.ok) { showToast('Devis marqué comme envoyé'); load() }
-    else showToast('Erreur lors de l\'envoi', false)
+    else showToast(j.error || 'Erreur lors de l\'envoi', false)
+  }
+
+  async function handleDelete() {
+    if (!confirm('Supprimer définitivement ce brouillon de devis ?')) return
+    setActionLoading(true)
+    const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' })
+    if (res.ok) { router.push('/app/quotes') }
+    else {
+      const j = await res.json().catch(() => ({}))
+      showToast(j.error || 'Suppression impossible', false)
+      setActionLoading(false)
+    }
   }
 
   async function handleStatus(status: string) {
@@ -170,14 +183,24 @@ export default function QuoteDetailPage() {
             <Download className="h-4 w-4" />PDF
           </button>
           {quote.status === 'BROUILLON' && (
-            <button
-              onClick={handleSend}
-              disabled={actionLoading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Envoyer au client
-            </button>
+            <>
+              <button
+                onClick={handleSend}
+                disabled={actionLoading}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Envoyer au client
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={actionLoading}
+                aria-label="Supprimer le brouillon de devis"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />Supprimer
+              </button>
+            </>
           )}
         </div>
       </div>

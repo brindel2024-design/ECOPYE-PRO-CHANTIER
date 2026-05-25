@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, MapPin, Calendar, CheckCircle2, Circle, XCircle, Phone,
-  FileText, Image as ImageIcon, StickyNote, Loader2, TrendingUp,
+  FileText, Image as ImageIcon, StickyNote, Loader2, TrendingUp, Trash2,
 } from 'lucide-react'
 import { PROJECT_STATUS_LABELS, ProjectStatus } from '@/lib/types'
 import { formatCurrency, formatDate, getRiskColor } from '@/lib/utils'
@@ -64,8 +64,10 @@ interface ProjectData {
 
 export default function ProjectDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const id = params?.id as string
 
+  const [deleting, setDeleting] = useState(false)
   const [project, setProject] = useState<ProjectData | null>(null)
   const [company, setCompany] = useState<{ name: string; siret: string | null; address: string; city: string; phone: string } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -84,6 +86,19 @@ export default function ProjectDetailPage() {
     if (cRes.ok) { const d = await cRes.json(); setCompany(d.data) }
     setLoading(false)
   }, [id])
+
+  async function handleDelete() {
+    if (!confirm('Supprimer définitivement ce chantier ? Les photos et étapes associées seront aussi supprimées.')) return
+    setDeleting(true)
+    const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      router.push('/app/projects')
+    } else {
+      const j = await res.json().catch(() => ({}))
+      setToast(j.error || 'Suppression impossible'); setTimeout(() => setToast(null), 3000)
+      setDeleting(false)
+    }
+  }
 
   function openNoteModal() {
     setNoteText(project?.notes ?? '')
@@ -318,6 +333,13 @@ export default function ProjectDetailPage() {
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
         >
           <FileText className="h-4 w-4 text-gray-500" />Générer rapport
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 shadow-sm disabled:opacity-50 sm:ml-auto"
+        >
+          {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}Supprimer le chantier
         </button>
       </div>
 

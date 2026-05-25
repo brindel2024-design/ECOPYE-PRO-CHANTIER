@@ -109,7 +109,51 @@ export default function InvoicesPage() {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <>
+        {/* Mobile : cartes (pas de découpe horizontale à 390 px) */}
+        <div className="sm:hidden space-y-3">
+          {invoices.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-400 text-sm">
+              Aucune facture — <Link href="/app/invoices/new" className="text-blue-600 hover:underline">Créer une facture</Link>
+            </div>
+          ) : invoices.map(inv => (
+            <div key={inv.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                    <span className="font-semibold text-gray-900 truncate">{inv.number}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">{TYPE_LABELS[inv.type] ?? inv.type}</p>
+                </div>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusBadgeClass(inv.status)}`}>
+                  {INVOICE_STATUS_LABELS[inv.status as keyof typeof INVOICE_STATUS_LABELS] ?? inv.status}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div><p className="text-xs text-gray-400">Client</p><p className="text-gray-700 truncate">{inv.client ? `${inv.client.firstName} ${inv.client.lastName}` : '—'}</p></div>
+                <div><p className="text-xs text-gray-400">Échéance</p>
+                  <p className={inv.status === 'EN_RETARD' ? 'text-red-600 font-medium' : 'text-gray-700'}>
+                    {inv.dueDate ? formatDate(new Date(inv.dueDate)) : '—'}
+                  </p></div>
+                <div><p className="text-xs text-gray-400">Montant TTC</p><p className="font-semibold text-gray-900">{formatCurrency(inv.totalTTC)}</p></div>
+                <div><p className="text-xs text-gray-400">Payé</p><p className="text-gray-700">{formatCurrency(inv.amountPaid)}</p></div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-3">
+                <Link href={`/app/invoices/${inv.id}`} className="text-blue-600 hover:text-blue-700 text-sm font-medium underline">Voir</Link>
+                {inv.status === 'EN_RETARD' && (
+                  <button onClick={() => handleRelance(inv.id, inv.number)}
+                    className="text-sm bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded font-medium transition-colors ml-auto">
+                    Relance
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop : tableau */}
+        <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
@@ -159,6 +203,7 @@ export default function InvoicesPage() {
             </table>
           </div>
         </div>
+        </>
       )}
     </div>
   )

@@ -27,6 +27,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       {/* Bouton menu mobile */}
       <button
         onClick={onMenuClick}
+        aria-label="Ouvrir le menu de navigation"
         className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
       >
         <Menu className="h-5 w-5" />
@@ -53,9 +54,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       <div className="ml-auto flex items-center gap-3">
 
         {/* Notifications */}
-        <button className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100">
+        <button aria-label="Notifications" className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100">
           <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
         </button>
 
         {/* Avatar utilisateur */}

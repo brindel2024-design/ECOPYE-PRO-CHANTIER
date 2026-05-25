@@ -128,6 +128,10 @@ export default function InvoiceDetailPage() {
 
   async function handleDownloadPdf() {
     if (!invoice || !company) return
+    if (!company.siret || !company.address || !company.city) {
+      showToast('Profil incomplet : renseignez SIRET, adresse et ville dans Paramètres avant de générer le PDF.')
+      return
+    }
     const { generateInvoicePdf } = await import('@/lib/generate-pdf')
     await generateInvoicePdf({
       number: invoice.number,

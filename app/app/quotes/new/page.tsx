@@ -301,6 +301,12 @@ export default function NewQuotePage() {
                 <Plus className="h-3.5 w-3.5" />Ajouter une ligne
               </button>
             </div>
+            <div className="mb-4 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-amber-600" />
+              <p>
+                <strong>Vérifiez le taux de TVA applicable avant envoi.</strong> Le taux par défaut est 20 %, mais il dépend de la nature des travaux et de l&apos;éligibilité du logement (5,5 % rénovation énergétique, 10 % travaux d&apos;amélioration sur logement de plus de 2 ans, etc.).
+              </p>
+            </div>
             {lines.length === 0 ? (
               <div className="rounded-lg border-2 border-dashed border-gray-200 p-8 text-center">
                 <p className="text-sm text-gray-400">Utilisez le copilote IA ou ajoutez des lignes manuellement</p>

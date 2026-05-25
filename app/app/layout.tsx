@@ -30,11 +30,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Contenu principal */}
-      <div className="flex flex-col flex-1 lg:pl-64 min-h-screen">
+      <div className="flex flex-col flex-1 min-w-0 lg:pl-64 min-h-screen">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         <TrialBanner />
         <ProfileIncompleteBanner />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
           {children}
         </main>
       </div>

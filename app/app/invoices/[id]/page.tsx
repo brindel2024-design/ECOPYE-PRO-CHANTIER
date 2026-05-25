@@ -227,9 +227,9 @@ export default function InvoiceDetailPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-8">
-        <div className="grid grid-cols-2 gap-8">
-          <div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-8 space-y-6 sm:space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+          <div className="min-w-0 break-words">
             {company && (
               <>
                 <p className="text-lg font-bold text-gray-900">{company.name}</p>
@@ -244,14 +244,14 @@ export default function InvoiceDetailPage() {
               </>
             )}
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right min-w-0">
             <p className="text-3xl font-black text-gray-900 tracking-tight">FACTURE</p>
             <p className="text-lg font-semibold text-blue-600 mt-1">{invoice.number}</p>
             <div className="mt-3 space-y-1 text-sm text-gray-500">
               <p>Date d&apos;émission : <span className="text-gray-700 font-medium">{formatDate(invoice.issuedAt)}</span></p>
               <p>Date d&apos;échéance : <span className={`font-medium ${isLate ? 'text-red-600' : 'text-gray-700'}`}>{invoice.dueDate ? formatDate(invoice.dueDate) : '—'}</span></p>
             </div>
-            <div className="mt-3 flex items-center justify-end gap-2">
+            <div className="mt-3 flex items-center justify-start sm:justify-end gap-2 flex-wrap">
               <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_BADGE[invoice.type === 'ACOMPTE' ? 'ENVOYEE' : invoice.status] ?? 'bg-gray-100 text-gray-600'}`}>
                 {TYPE_LABELS[invoice.type] ?? invoice.type}
               </span>
@@ -270,8 +270,8 @@ export default function InvoiceDetailPage() {
           <p className="text-sm text-gray-500">{invoice.client.email}</p>
         </div>
 
-        <div>
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-2 text-gray-600 font-semibold">Désignation</th>

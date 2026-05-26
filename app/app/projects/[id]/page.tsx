@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { PROJECT_STATUS_LABELS, ProjectStatus } from '@/lib/types'
 import { formatCurrency, formatDate, getRiskColor } from '@/lib/utils'
+import { ProofDossier } from '@/components/ProofDossier'
 
 const STATUS_COLORS: Record<string, string> = {
   EN_COURS: 'text-blue-700 bg-blue-100',
@@ -313,6 +314,10 @@ export default function ProjectDetailPage() {
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{project.notes}</p>
         </div>
       )}
+
+      <div className="mb-6">
+        <ProofDossier projectId={project.id} />
+      </div>
 
       <div className="flex flex-wrap gap-3">
         <Link

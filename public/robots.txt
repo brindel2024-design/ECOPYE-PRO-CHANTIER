@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Allow: /pricing
+Allow: /blog
+Allow: /blog/
 Allow: /mentions-legales
 Allow: /confidentialite
 Allow: /cgu

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { getSessionOrUnauthorized, requireCompanyId, assertCompanyLegalReady } from '@/lib/api-helpers'
 
@@ -22,13 +23,16 @@ export async function POST(_request: Request, { params }: Params) {
     const legal = await assertCompanyLegalReady(companyId)
     if (!legal.ok) return legal.error
 
+    // Génère un token public (lien portail client) si absent
+    const publicToken = existing.publicToken ?? randomBytes(24).toString('hex')
+
     const data = await prisma.quote.update({
       where: { id: params.id },
-      data: { status: 'ENVOYE', sentAt: new Date() },
+      data: { status: 'ENVOYE', sentAt: new Date(), publicToken },
       include: { client: true, lines: { orderBy: { order: 'asc' } } },
     })
 
-    return NextResponse.json({ success: true, data })
+    return NextResponse.json({ success: true, data, portalToken: publicToken })
   } catch (e) {
     console.error('POST /api/quotes/[id]/send error:', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })

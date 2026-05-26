@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import {
   FileText,
   FolderKanban,
@@ -21,6 +22,19 @@ import {
 } from 'lucide-react'
 import { PwaInstallButton } from '@/components/PwaInstallButton'
 import { PLANS, PLAN_ORDER, TRIAL_DAYS, yearlyPerMonth } from '@/lib/plans'
+
+export const metadata: Metadata = {
+  title: 'Logiciel de gestion chantier pour artisans',
+  description:
+    'Gérez devis, chantiers, photos, factures et paiements depuis une seule application pour artisans du BTP. Essayez ECOPYE Pro pendant 14 jours.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Logiciel de gestion chantier pour artisans | ECOPYE Pro',
+    description:
+      'Gérez devis, chantiers, photos, factures et paiements depuis une seule application pour artisans du BTP.',
+    url: '/',
+  },
+}
 
 const features = [
   {
@@ -93,8 +107,29 @@ const faqs = [
 ]
 
 export default function LandingPage() {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'ECOPYE Pro Chantier',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web, Android, iOS',
+    description:
+      'Application de gestion de devis, chantiers, photos, factures et paiements pour artisans du BTP.',
+    url: 'https://pro.ecopye.fr/',
+    offers: PLAN_ORDER.map((key) => ({
+      '@type': 'Offer',
+      name: PLANS[key].name,
+      price: PLANS[key].priceMonthly,
+      priceCurrency: 'EUR',
+    })),
+  }
+
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -111,6 +146,7 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#fonctionnalites" className="text-sm text-gray-600 hover:text-gray-900">Fonctionnalités</a>
               <a href="#tarifs" className="text-sm text-gray-600 hover:text-gray-900">Tarifs</a>
+              <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">Conseils</Link>
               <a href="#faq" className="text-sm text-gray-600 hover:text-gray-900">FAQ</a>
             </div>
             <div className="flex items-center gap-3">
@@ -433,6 +469,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><a href="#fonctionnalites" className="text-gray-500 hover:text-gray-900">Fonctionnalités</a></li>
                 <li><Link href="/pricing" className="text-gray-500 hover:text-gray-900">Tarifs</Link></li>
+                <li><Link href="/blog" className="text-gray-500 hover:text-gray-900">Conseils</Link></li>
                 <li><a href="#faq" className="text-gray-500 hover:text-gray-900">FAQ</a></li>
                 <li><Link href="/register" className="text-gray-500 hover:text-gray-900">Créer un compte</Link></li>
               </ul>

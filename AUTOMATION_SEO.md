@@ -18,19 +18,24 @@ au sitemap avant leur date de publication.
 
 ## Deploiement automatique
 
-Le workflow `.github/workflows/deploy-production.yml` redeploie le site apres
-une mise a jour de la branche `master`, sans utiliser le terminal Hostinger.
+Le script `scripts/auto-deploy-seo.sh` est installe une fois sur le VPS
+Hostinger. Toutes les 15 minutes, le VPS controle la branche `master`. Si une
+mise a jour autorisee est disponible, il construit le site et recharge
+`ecopye-pro`. S'il trouve des modifications locales non enregistrees sur le
+serveur, il s'arrete sans les ecraser.
 
-Configurer une seule fois les secrets GitHub de l'environnement `production` :
+Cette approche evite de transmettre une cle privee du VPS a GitHub.
 
-| Secret | Valeur attendue |
-| --- | --- |
-| `ECOPYE_VPS_HOST` | Adresse du VPS Hostinger |
-| `ECOPYE_VPS_USER` | Utilisateur SSH de deploiement |
-| `ECOPYE_VPS_SSH_KEY` | Cle privee reservee au deploiement automatique |
+Installation initiale sur le terminal Hostinger, apres publication de ce
+script sur `master` :
 
-La cle privee ne doit jamais etre ajoutee au depot. La cle publique
-correspondante doit etre autorisee sur le VPS.
+```bash
+cd /opt/ECOPYE-PRO-CHANTIER
+git pull --ff-only origin master
+chmod +x scripts/auto-deploy-seo.sh
+(crontab -l 2>/dev/null | grep -v 'auto-deploy-seo.sh'; echo '*/15 * * * * /opt/ECOPYE-PRO-CHANTIER/scripts/auto-deploy-seo.sh >> /var/log/ecopye-auto-deploy.log 2>&1') | crontab -
+./scripts/auto-deploy-seo.sh
+```
 
 ## Extension a d'autres sites
 

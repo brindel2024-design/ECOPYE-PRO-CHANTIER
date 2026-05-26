@@ -12,6 +12,7 @@ build/
 .env
 .env.local
 .env.*.local
+.env*.bak
 
 # Logs
 *.log
@@ -27,6 +28,7 @@ Thumbs.db
 
 # Prisma
 prisma/*.db
+prisma/*.db.backup-*
 
 # TypeScript
 *.tsbuildinfo

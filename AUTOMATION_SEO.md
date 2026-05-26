@@ -33,6 +33,9 @@ script sur `master` :
 cd /opt/ECOPYE-PRO-CHANTIER
 git pull --ff-only origin master
 chmod +x scripts/auto-deploy-seo.sh
+npm ci
+npm run build
+pm2 reload ecopye-pro
 (crontab -l 2>/dev/null | grep -v 'auto-deploy-seo.sh'; echo '*/15 * * * * /opt/ECOPYE-PRO-CHANTIER/scripts/auto-deploy-seo.sh >> /var/log/ecopye-auto-deploy.log 2>&1') | crontab -
 ./scripts/auto-deploy-seo.sh
 ```

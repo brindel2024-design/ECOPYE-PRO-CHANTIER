@@ -23,7 +23,7 @@ if [[ "$LOCAL_REV" == "$REMOTE_REV" ]]; then
 fi
 
 git merge --ff-only origin/master
-npm install
+npm ci
 npm run build
 pm2 reload ecopye-pro
 

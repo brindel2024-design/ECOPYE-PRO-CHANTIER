@@ -1,6 +1,39 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+/**
+ * Garde-fou légal : vérifie que l'entreprise possède les informations
+ * obligatoires (SIRET, adresse, code postal) avant toute émission ou envoi
+ * d'un document commercial (devis, facture). Renvoie une erreur 400 sinon.
+ */
+export async function assertCompanyLegalReady(
+  companyId: string
+): Promise<{ ok: true } | { ok: false; error: NextResponse; missing: string[] }> {
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { siret: true, address: true, postalCode: true },
+  })
+  const missing: string[] = []
+  if (!company?.siret) missing.push('SIRET')
+  if (!company?.address) missing.push('adresse')
+  if (!company?.postalCode) missing.push('code postal')
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      missing,
+      error: NextResponse.json(
+        {
+          error: `Profil entreprise incomplet (${missing.join(', ')}). Complétez vos informations légales dans Paramètres avant d'émettre ou d'envoyer ce document.`,
+          missing,
+        },
+        { status: 400 }
+      ),
+    }
+  }
+  return { ok: true }
+}
 
 export async function getSessionOrUnauthorized() {
   const session = await getServerSession(authOptions)

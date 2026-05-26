@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionOrUnauthorized, requireCompanyId } from '@/lib/api-helpers'
+import { getSessionOrUnauthorized, requireCompanyId, assertCompanyLegalReady } from '@/lib/api-helpers'
 
 type Params = { params: { id: string } }
 
@@ -19,23 +19,8 @@ export async function POST(_request: Request, { params }: Params) {
     }
 
     // Garde-fou légal : un devis envoyé doit porter le SIRET et l'adresse de l'émetteur
-    const company = await prisma.company.findUnique({
-      where: { id: companyId },
-      select: { siret: true, address: true, postalCode: true },
-    })
-    const missing: string[] = []
-    if (!company?.siret) missing.push('SIRET')
-    if (!company?.address) missing.push('adresse')
-    if (!company?.postalCode) missing.push('code postal')
-    if (missing.length > 0) {
-      return NextResponse.json(
-        {
-          error: `Profil entreprise incomplet (${missing.join(', ')}). Complétez vos informations légales dans Paramètres avant d'envoyer un devis.`,
-          missing,
-        },
-        { status: 400 }
-      )
-    }
+    const legal = await assertCompanyLegalReady(companyId)
+    if (!legal.ok) return legal.error
 
     const data = await prisma.quote.update({
       where: { id: params.id },

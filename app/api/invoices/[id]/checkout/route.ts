@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionOrUnauthorized, requireCompanyId } from '@/lib/api-helpers'
+import { getSessionOrUnauthorized, requireCompanyId, assertCompanyLegalReady } from '@/lib/api-helpers'
 import { stripe, isStripeConfigured } from '@/lib/stripe'
 
 type Params = { params: { id: string } }
@@ -18,6 +18,10 @@ export async function POST(request: Request, { params }: Params) {
         { status: 503 }
       )
     }
+
+    // Garde-fou légal : une facture transmise au client pour paiement doit être complète
+    const legal = await assertCompanyLegalReady(companyId)
+    if (!legal.ok) return legal.error
 
     const invoice = await prisma.invoice.findFirst({
       where: { id: params.id, companyId },

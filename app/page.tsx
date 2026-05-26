@@ -20,7 +20,7 @@ import {
   Smartphone,
 } from 'lucide-react'
 import { PwaInstallButton } from '@/components/PwaInstallButton'
-import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/plans'
+import { PLANS, PLAN_ORDER, TRIAL_DAYS, yearlyPerMonth } from '@/lib/plans'
 
 const features = [
   {
@@ -308,8 +308,8 @@ export default function LandingPage() {
               >
                 {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white">
-                      Le plus populaire
+                    <span className="whitespace-nowrap rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white">
+                      {plan.badge ?? 'Le plus populaire'}
                     </span>
                   </div>
                 )}
@@ -326,6 +326,9 @@ export default function LandingPage() {
                     </span>
                     <span className={`text-sm ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>/mois HT</span>
                   </div>
+                  <p className={`mt-1 text-xs ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
+                    ou {yearlyPerMonth(plan)} €/mois en annuel ({plan.priceYearly} € HT/an)
+                  </p>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
@@ -349,9 +352,17 @@ export default function LandingPage() {
               )
             })}
           </div>
-          <p className="text-center text-sm text-gray-500 mt-8">
-            Plan Entreprise sur devis — <a href="mailto:pro@ecopye.fr" className="text-blue-600 hover:underline">pro@ecopye.fr</a>
-          </p>
+          <div className="mt-10 text-center">
+            <div className="inline-block rounded-xl border border-amber-200 bg-amber-50 px-5 py-3">
+              <p className="text-sm font-semibold text-amber-900">
+                🏗️ Tarifs fondateurs : prix garanti pendant 12 mois pour les premiers abonnés.
+              </p>
+            </div>
+            <p className="mt-4 text-sm text-gray-600">{TRIAL_DAYS} jours gratuits · sans carte bancaire · sans engagement</p>
+            <p className="mt-2 text-sm text-gray-500">
+              Plan Entreprise sur devis — <a href="mailto:pro@ecopye.fr" className="text-blue-600 hover:underline">pro@ecopye.fr</a>
+            </p>
+          </div>
         </div>
       </section>
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSessionOrUnauthorized, requireCompanyId } from '@/lib/api-helpers'
 import { stripe, isStripeConfigured } from '@/lib/stripe'
-import { PLANS, PlanKey } from '@/lib/plans'
+import { PLANS, PlanKey, lookupKeyFor, type BillingPeriod } from '@/lib/plans'
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +24,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Plan inconnu.' }, { status: 400 })
     }
     const planDef = PLANS[plan]
+    const billingPeriod: BillingPeriod = body.billingPeriod === 'yearly' ? 'yearly' : 'monthly'
+    const lookupKey = lookupKeyFor(planDef, billingPeriod)
 
     const company = await prisma.company.findUnique({
       where: { id: companyId },
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
 
     // Récupère le Price Stripe via lookup_key (créé par scripts/setup-stripe-products.ts)
     const prices = await stripe.prices.list({
-      lookup_keys: [planDef.lookupKey],
+      lookup_keys: [lookupKey],
       active: true,
       limit: 1,
     })

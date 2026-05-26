@@ -5,7 +5,6 @@ import { Sidebar } from '@/components/Sidebar'
 import { Topbar } from '@/components/Topbar'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProfileIncompleteBanner } from '@/components/ProfileIncompleteBanner'
-import { SubscriptionGate } from '@/components/SubscriptionGate'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -39,7 +38,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <SubscriptionGate />
     </div>
   )
 }

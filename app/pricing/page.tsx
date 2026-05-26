@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { CheckCircle2, ArrowRight, HardHat, Loader2 } from 'lucide-react'
-import { PLANS, PLAN_ORDER, PlanKey, TRIAL_DAYS } from '@/lib/plans'
+import { PLANS, PLAN_ORDER, PlanKey, TRIAL_DAYS, type BillingPeriod, yearlyPerMonth } from '@/lib/plans'
 
 export default function PricingPage() {
   const { data: session, status } = useSession()
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [err, setErr] = useState('')
 
   const role = (session?.user as { role?: string } | undefined)?.role
@@ -29,7 +30,7 @@ export default function PricingPage() {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, billingPeriod: period }),
       })
       const json = await res.json().catch(() => ({}))
       if (res.ok && json.url) {
@@ -76,9 +77,30 @@ export default function PricingPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Des tarifs simples, sans engagement</h1>
-          <p className="text-gray-600">{TRIAL_DAYS} jours d&apos;essai gratuit. Sans carte requise pour démarrer.</p>
+          <p className="text-gray-600">{TRIAL_DAYS} jours d&apos;essai gratuit, sans carte bancaire, sans engagement.</p>
+        </div>
+
+        {/* Sélecteur Mensuel / Annuel */}
+        <div className="flex flex-col items-center gap-2 mb-10">
+          <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setPeriod('monthly')}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${period === 'monthly' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              Mensuel
+            </button>
+            <button
+              onClick={() => setPeriod('yearly')}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${period === 'yearly' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              Annuel
+            </button>
+          </div>
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-green-700">
+            <CheckCircle2 className="h-4 w-4" /> Économisez jusqu&apos;à 2 mois
+          </span>
         </div>
 
         {isAdmin && (
@@ -113,8 +135,8 @@ export default function PricingPage() {
                 } p-7 flex flex-col`}
               >
                 {plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                    Le plus populaire
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    {plan.badge ?? 'Le plus populaire'}
                   </span>
                 )}
 
@@ -122,8 +144,23 @@ export default function PricingPage() {
                 <p className="text-sm text-gray-500 mt-1 mb-5">{plan.description}</p>
 
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">{plan.priceMonthly} €</span>
-                  <span className="text-sm text-gray-500 ml-1">/mois HT</span>
+                  {period === 'yearly' ? (
+                    <>
+                      <span className="text-4xl font-bold text-gray-900">{yearlyPerMonth(plan)} €</span>
+                      <span className="text-sm text-gray-500 ml-1">/mois HT</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        soit {plan.priceYearly} € HT/an, facturé annuellement
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold text-gray-900">{plan.priceMonthly} €</span>
+                      <span className="text-sm text-gray-500 ml-1">/mois HT</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        ou {yearlyPerMonth(plan)} €/mois en annuel
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <ul className="space-y-3 mb-7 flex-1">
@@ -153,8 +190,18 @@ export default function PricingPage() {
           })}
         </div>
 
-        <div className="mt-12 text-center text-sm text-gray-500">
-          <p>Paiement sécurisé via Stripe · Résiliation à tout moment depuis votre espace · TVA en sus</p>
+        <div className="mt-10 max-w-2xl mx-auto text-center">
+          <div className="inline-block rounded-xl border border-amber-200 bg-amber-50 px-5 py-3">
+            <p className="text-sm font-semibold text-amber-900">
+              🏗️ Tarifs fondateurs : prix garanti pendant 12 mois pour les premiers abonnés.
+            </p>
+          </div>
+          <p className="mt-4 text-sm text-gray-600">
+            {TRIAL_DAYS} jours gratuits · sans carte bancaire · sans engagement
+          </p>
+          <p className="mt-2 text-xs text-gray-400">
+            Paiement sécurisé via Stripe · Résiliation à tout moment depuis votre espace · TVA en sus
+          </p>
         </div>
       </main>
     </div>

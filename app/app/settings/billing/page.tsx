@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, ExternalLink } from 'lucide-react'
-import { PLANS, PLAN_ORDER, PlanKey } from '@/lib/plans'
+import { PLANS, PLAN_ORDER, PlanKey, type BillingPeriod, yearlyPerMonth } from '@/lib/plans'
 
 interface BillingState {
   plan: PlanKey
@@ -32,6 +32,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true)
   const [busyPlan, setBusyPlan] = useState<PlanKey | null>(null)
   const [busyPortal, setBusyPortal] = useState(false)
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(m: string) { setToast(m); setTimeout(() => setToast(null), 3500) }
@@ -61,7 +62,7 @@ export default function BillingPage() {
     const r = await fetch('/api/billing/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, billingPeriod: period }),
     })
     const j = await r.json().catch(() => ({}))
     if (r.ok && j.url) {
@@ -153,9 +154,25 @@ export default function BillingPage() {
 
       {/* Choix de formule */}
       <div>
-        <h2 className="text-base font-semibold text-gray-900 mb-4">
-          {state.hasStripeSubscription ? 'Changer de formule' : 'Choisir une formule payante'}
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-base font-semibold text-gray-900">
+            {state.hasStripeSubscription ? 'Changer de formule' : 'Choisir une formule payante'}
+          </h2>
+          <div className="inline-flex items-center self-start rounded-full border border-gray-200 bg-white p-1">
+            <button
+              onClick={() => setPeriod('monthly')}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${period === 'monthly' ? 'bg-blue-600 text-white' : 'text-gray-600'}`}
+            >
+              Mensuel
+            </button>
+            <button
+              onClick={() => setPeriod('yearly')}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${period === 'yearly' ? 'bg-blue-600 text-white' : 'text-gray-600'}`}
+            >
+              Annuel <span className="text-green-300">· -2 mois</span>
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {PLAN_ORDER.map((key) => {
             const plan = PLANS[key]
@@ -174,7 +191,16 @@ export default function BillingPage() {
                     <span className="text-xs text-blue-600 font-medium">Plan actuel</span>
                   )}
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mb-1">{plan.priceMonthly} €<span className="text-xs font-normal text-gray-500"> HT/mois</span></p>
+                {period === 'yearly' ? (
+                  <p className="text-2xl font-bold text-gray-900 mb-1">
+                    {yearlyPerMonth(plan)} €<span className="text-xs font-normal text-gray-500"> HT/mois</span>
+                    <span className="block text-[11px] font-normal text-gray-400">{plan.priceYearly} € HT/an</span>
+                  </p>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900 mb-1">
+                    {plan.priceMonthly} €<span className="text-xs font-normal text-gray-500"> HT/mois</span>
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
                 <ul className="space-y-1.5 mb-4 text-xs text-gray-600 flex-1">
                   {plan.features.slice(0, 4).map((f) => (

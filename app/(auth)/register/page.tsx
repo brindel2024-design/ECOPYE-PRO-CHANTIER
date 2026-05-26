@@ -59,7 +59,7 @@ export default function RegisterPage() {
       return
     }
 
-    // Étape 3 : création du compte → connexion → paiement (carte + essai 14 j)
+    // Étape 3 : création du compte → connexion auto → accès à l'app (essai sans carte)
     setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {
@@ -74,31 +74,18 @@ export default function RegisterPage() {
         return
       }
 
-      // Connexion automatique
+      // Connexion automatique puis accès direct à l'espace artisan
       const signinRes = await signIn('credentials', {
         redirect: false,
         email: form.email,
         password: form.password,
       })
       if (signinRes?.error) {
-        setError('Compte créé, mais connexion automatique impossible. Connectez-vous puis choisissez votre formule.')
+        setError('Compte créé. Connectez-vous pour accéder à votre espace.')
         setLoading(false)
         return
       }
-
-      // Redirection vers le paiement Stripe (carte obligatoire, essai 14 jours)
-      const co = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, successPath: '/app/dashboard?welcome=1' }),
-      })
-      const coData = await co.json()
-      if (co.ok && coData.url) {
-        window.location.href = coData.url
-        return
-      }
-      setError(coData.error ?? "Impossible de démarrer le paiement. Réessayez depuis votre espace.")
-      setLoading(false)
+      window.location.href = '/app/dashboard?welcome=1'
     } catch {
       setError('Erreur réseau. Veuillez réessayer.')
       setLoading(false)
@@ -145,7 +132,7 @@ export default function RegisterPage() {
                   ? 'Vos informations personnelles'
                   : step === 2
                   ? 'Informations de votre entreprise'
-                  : 'Essai gratuit 14 jours — carte requise, sans engagement, résiliable à tout moment'}
+                  : 'Essai gratuit 14 jours, sans carte bancaire, sans engagement'}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -296,7 +283,7 @@ export default function RegisterPage() {
                       )
                     })}
                     <p className="text-xs text-gray-500 text-center pt-1 leading-relaxed">
-                      Carte demandée maintenant, mais <strong>aucun prélèvement avant 14 jours</strong>. Résiliable à tout moment avant la fin de l&apos;essai. Paiement sécurisé par Stripe.
+                      <strong>14 jours d&apos;essai gratuits, sans carte bancaire.</strong> Vous déciderez de vous abonner (ou non) à la fin de l&apos;essai — sans engagement.
                     </p>
                   </div>
                 )}
@@ -307,9 +294,9 @@ export default function RegisterPage() {
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Redirection vers le paiement…</>
+                    <><Loader2 className="h-4 w-4 animate-spin" />Création du compte…</>
                   ) : step === 3 ? (
-                    'Créer mon compte et activer l’essai'
+                    'Créer mon compte — 14 jours gratuits'
                   ) : (
                     'Continuer →'
                   )}

@@ -26,7 +26,7 @@ function mapStripeStatus(status: Stripe.Subscription.Status): string {
 function planFromLookupKey(lookupKey: string | null | undefined): PlanKey | null {
   if (!lookupKey) return null
   const found = (Object.values(PLANS) as Array<(typeof PLANS)[PlanKey]>).find(
-    (p) => p.lookupKey === lookupKey
+    (p) => p.lookupKeyMonthly === lookupKey || p.lookupKeyYearly === lookupKey
   )
   return found ? found.key : null
 }

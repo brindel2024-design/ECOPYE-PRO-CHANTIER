@@ -17,6 +17,7 @@ export async function GET(_request: Request, { params }: Params) {
       include: {
         client: true,
         photos: { orderBy: { takenAt: 'asc' } },
+        reserves: true,
       },
     })
     if (!project) {
@@ -24,11 +25,16 @@ export async function GET(_request: Request, { params }: Params) {
     }
 
     const invoiceCount = await prisma.invoice.count({ where: { companyId, projectId: project.id } })
+    const totalReserves = project.reserves.length
+    const openReserves = project.reserves.filter((r) => !r.resolved).length
 
     const checklist = checkProjectProof({
       photos: project.photos.map((p) => ({ category: p.category })),
       hasLinkedQuote: Boolean(project.quoteId),
       hasInvoice: invoiceCount > 0,
+      received: Boolean(project.receptionAt),
+      openReserves,
+      totalReserves,
     })
 
     const photos = project.photos.map((p) => ({

@@ -10,6 +10,7 @@ import {
 import { PROJECT_STATUS_LABELS, ProjectStatus } from '@/lib/types'
 import { formatCurrency, formatDate, getRiskColor } from '@/lib/utils'
 import { ProofDossier } from '@/components/ProofDossier'
+import { ReceptionSection } from '@/components/ReceptionSection'
 
 const STATUS_COLORS: Record<string, string> = {
   EN_COURS: 'text-blue-700 bg-blue-100',
@@ -69,6 +70,7 @@ export default function ProjectDetailPage() {
   const id = params?.id as string
 
   const [deleting, setDeleting] = useState(false)
+  const [proofKey, setProofKey] = useState(0)
   const [project, setProject] = useState<ProjectData | null>(null)
   const [company, setCompany] = useState<{ name: string; siret: string | null; address: string; city: string; phone: string } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -315,8 +317,9 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      <div className="mb-6">
-        <ProofDossier projectId={project.id} />
+      <div className="mb-6 space-y-4">
+        <ProofDossier key={proofKey} projectId={project.id} />
+        <ReceptionSection projectId={project.id} onChange={() => setProofKey((k) => k + 1)} />
       </div>
 
       <div className="flex flex-wrap gap-3">

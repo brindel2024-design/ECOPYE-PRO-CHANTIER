@@ -14,6 +14,9 @@ export interface ProofInput {
   photos: { category?: string | null }[]
   hasLinkedQuote: boolean
   hasInvoice: boolean
+  received?: boolean
+  openReserves?: number
+  totalReserves?: number
 }
 
 export function checkProjectProof(input: ProofInput): {
@@ -30,7 +33,16 @@ export function checkProjectProof(input: ProofInput): {
     { key: 'min', label: 'Au moins 3 photos horodatées', done: input.photos.length >= 3 },
     { key: 'devis', label: 'Devis rattaché au chantier', done: input.hasLinkedQuote, hint: 'Cadre contractuel signé.' },
     { key: 'facture', label: 'Facture émise', done: input.hasInvoice },
+    { key: 'reception', label: 'Réception du chantier enregistrée', done: Boolean(input.received), hint: 'PV de réception signé par le client.' },
   ]
+  if ((input.totalReserves ?? 0) > 0) {
+    items.push({
+      key: 'reserves',
+      label: 'Réserves levées',
+      done: (input.openReserves ?? 0) === 0,
+      hint: 'Documentez la levée des réserves.',
+    })
+  }
   const done = items.filter((i) => i.done).length
   const total = items.length
   return { items, score: Math.round((100 * done) / total), done, total }

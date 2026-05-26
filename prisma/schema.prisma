@@ -293,6 +293,9 @@ model Project {
   progress      Int           @default(0)
   riskLevel     String        @default("FAIBLE")
   notes         String?
+  receptionAt        DateTime?
+  receptionSignerName String?
+  receptionNotes     String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -302,9 +305,22 @@ model Project {
   documents  Document[]
   events     ScheduleEvent[]
   technicians ProjectTechnician[]
+  reserves   Reserve[]
 
   @@index([companyId])
   @@index([clientId])
+}
+
+model Reserve {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description String
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId])
 }
 
 model ProjectStep {

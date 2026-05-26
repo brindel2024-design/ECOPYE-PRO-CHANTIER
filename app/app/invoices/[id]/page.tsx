@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { INVOICE_STATUS_LABELS } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { PreSendCheck } from '@/components/PreSendCheck'
 
 const TYPE_LABELS: Record<string, string> = {
   ACOMPTE: 'Acompte', FINALE: 'Facture finale', INTERMEDIAIRE: 'Intermédiaire', AVOIR: 'Avoir',
@@ -219,6 +220,8 @@ export default function InvoiceDetailPage() {
       <Link href="/app/invoices" className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1.5">
         <ArrowLeft className="w-4 h-4" />Retour aux factures
       </Link>
+
+      <PreSendCheck kind="invoice" id={id} />
 
       {isLate && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-2 text-red-700 text-sm">

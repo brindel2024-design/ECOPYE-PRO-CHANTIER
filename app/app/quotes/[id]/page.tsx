@@ -9,6 +9,7 @@ import {
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import { QUOTE_STATUS_LABELS } from '@/lib/types'
 import type { QuoteStatus } from '@/lib/types'
+import { PreSendCheck } from '@/components/PreSendCheck'
 
 interface QuoteLine {
   id: string; label: string; quantity: number; unit: string
@@ -164,6 +165,10 @@ export default function QuoteDetailPage() {
       <Link href="/app/quotes" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-6">
         <ArrowLeft className="h-4 w-4" />Retour aux devis
       </Link>
+
+      <div className="mb-6">
+        <PreSendCheck kind="quote" id={id} />
+      </div>
 
       <div className="flex items-start justify-between mb-6">
         <div>

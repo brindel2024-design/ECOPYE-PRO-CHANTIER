@@ -11,6 +11,7 @@ import { PROJECT_STATUS_LABELS, ProjectStatus } from '@/lib/types'
 import { formatCurrency, formatDate, getRiskColor } from '@/lib/utils'
 import { ProofDossier } from '@/components/ProofDossier'
 import { ReceptionSection } from '@/components/ReceptionSection'
+import { ProfitabilitySection } from '@/components/ProfitabilitySection'
 
 const STATUS_COLORS: Record<string, string> = {
   EN_COURS: 'text-blue-700 bg-blue-100',
@@ -319,6 +320,7 @@ export default function ProjectDetailPage() {
 
       <div className="mb-6 space-y-4">
         <ProofDossier key={proofKey} projectId={project.id} />
+        <ProfitabilitySection projectId={project.id} />
         <ReceptionSection projectId={project.id} onChange={() => setProofKey((k) => k + 1)} />
       </div>
 

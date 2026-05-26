@@ -288,6 +288,10 @@ model Project {
   status        String        @default("PREPARATION")
   plannedBudget Float         @default(0)
   actualBudget  Float         @default(0)
+  costMaterials   Float       @default(0)
+  costLabor       Float       @default(0)
+  costSubcontract Float       @default(0)
+  costOverhead    Float       @default(0)
   startDate     DateTime?
   endDate       DateTime?
   progress      Int           @default(0)
@@ -321,6 +325,21 @@ model Reserve {
   createdAt   DateTime  @default(now())
 
   @@index([projectId])
+}
+
+model CatalogItem {
+  id          String   @id @default(cuid())
+  companyId   String
+  label       String
+  unit        String   @default("forfait")
+  unitPriceHT Float    @default(0)
+  vatRate     Float    @default(20)
+  isLabor     Boolean  @default(false)
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model ProjectStep {

@@ -77,6 +77,12 @@ export default function NewQuotePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [catalog, setCatalog] = useState<Array<{ id: string; label: string; unit: string; unitPriceHT: number; vatRate: number; isLabor: boolean; category: string | null }>>([])
+  const [showCatalog, setShowCatalog] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/catalog').then((r) => (r.ok ? r.json() : null)).then((j) => j?.data && setCatalog(j.data)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -97,6 +103,22 @@ export default function NewQuotePage() {
       active = false
     }
   }, [])
+
+  function addCatalogLine(item: { label: string; unit: string; unitPriceHT: number; vatRate: number; isLabor: boolean }) {
+    setLines((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(36).slice(2),
+        label: item.label,
+        quantity: 1,
+        unit: item.unit,
+        unitPriceHT: item.unitPriceHT,
+        vatRate: item.vatRate,
+        totalHT: item.unitPriceHT,
+        isLabor: item.isLabor,
+      },
+    ])
+  }
 
   function addLine() {
     setLines((prev) => [
@@ -308,10 +330,35 @@ export default function NewQuotePage() {
           <div className="rounded-xl border border-gray-200 bg-white p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-gray-900">Lignes du devis</h2>
-              <button onClick={addLine} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                <Plus className="h-3.5 w-3.5" />Ajouter une ligne
-              </button>
+              <div className="flex items-center gap-3">
+                {catalog.length > 0 && (
+                  <button onClick={() => setShowCatalog((s) => !s)} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                    <FileText className="h-3.5 w-3.5" />Depuis ma bibliothèque
+                  </button>
+                )}
+                <button onClick={addLine} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                  <Plus className="h-3.5 w-3.5" />Ajouter une ligne
+                </button>
+              </div>
             </div>
+
+            {showCatalog && catalog.length > 0 && (
+              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 max-h-56 overflow-y-auto">
+                <p className="text-xs font-medium text-blue-900 mb-2">Cliquez pour insérer un ouvrage :</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {catalog.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => addCatalogLine(c)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-white border border-blue-200 px-2.5 py-1.5 text-xs text-blue-800 hover:bg-blue-100"
+                      title={`${c.unitPriceHT} € HT / ${c.unit} · TVA ${c.vatRate}%`}
+                    >
+                      <Plus className="h-3 w-3" />{c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="mb-4 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-amber-600" />
               <p>

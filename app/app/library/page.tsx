@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   HardHat,
   Euro,
@@ -14,10 +14,25 @@ import {
   MapPin,
   FileDown,
   Calendar,
+  Hammer,
+  Plus,
+  Trash2,
+  Loader2,
   LucideIcon,
 } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
 
-type TabId = 'reglementations' | 'prix' | 'fournisseurs' | 'fiches' | 'formations'
+type TabId = 'ouvrages' | 'reglementations' | 'prix' | 'fournisseurs' | 'fiches' | 'formations'
+
+interface CatalogItem {
+  id: string
+  label: string
+  unit: string
+  unitPriceHT: number
+  vatRate: number
+  isLabor: boolean
+  category: string | null
+}
 
 interface Tab {
   id: TabId
@@ -26,6 +41,7 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
+  { id: 'ouvrages', label: 'Mes ouvrages', icon: Hammer },
   { id: 'reglementations', label: 'Réglementations', icon: HardHat },
   { id: 'prix', label: 'Prix unitaires', icon: Euro },
   { id: 'fournisseurs', label: 'Fournisseurs', icon: Truck },
@@ -80,10 +96,17 @@ function formatEur(n: number) {
   return n.toLocaleString('fr-FR') + ' €'
 }
 
+const EMPTY_FORM = { label: '', unit: 'forfait', unitPriceHT: 0, vatRate: 20, isLabor: false, category: '' }
+
 export default function LibraryPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('reglementations')
+  const [activeTab, setActiveTab] = useState<TabId>('ouvrages')
   const [search, setSearch] = useState('')
   const [toast, setToast] = useState<string | null>(null)
+
+  const [catalog, setCatalog] = useState<CatalogItem[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [form, setForm] = useState({ ...EMPTY_FORM })
+  const [adding, setAdding] = useState(false)
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -91,6 +114,31 @@ export default function LibraryPage() {
   }
 
   const simToast = () => showToast('Fonctionnalité disponible en version PRO')
+
+  const loadCatalog = useCallback(async () => {
+    const r = await fetch('/api/catalog')
+    if (r.ok) { const j = await r.json(); setCatalog(j.data ?? []) }
+    setCatalogLoading(false)
+  }, [])
+
+  useEffect(() => { loadCatalog() }, [loadCatalog])
+
+  async function addItem() {
+    if (!form.label.trim()) { showToast('Le libellé est obligatoire'); return }
+    setAdding(true)
+    const r = await fetch('/api/catalog', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    setAdding(false)
+    if (r.ok) { setForm({ ...EMPTY_FORM }); await loadCatalog(); showToast('Ouvrage ajouté') }
+    else { const j = await r.json().catch(() => ({})); showToast(j.error || 'Échec') }
+  }
+
+  async function deleteItem(id: string) {
+    await fetch(`/api/catalog/${id}`, { method: 'DELETE' })
+    await loadCatalog()
+  }
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -139,6 +187,62 @@ export default function LibraryPage() {
       </div>
 
       {/* Tab content */}
+      {activeTab === 'ouvrages' && (
+        <div className="space-y-5">
+          <div className="rounded-xl border border-gray-200 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Ajouter un ouvrage à votre bibliothèque</h2>
+            <p className="text-xs text-gray-500 mb-4">Vos prestations récurrentes avec vos prix — réutilisables en un clic dans vos devis.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <input value={form.label} onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))} placeholder="Désignation de l'ouvrage" className="sm:col-span-4 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              <input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Catégorie (ex: Plomberie)" className="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              <input value={form.unit} onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))} placeholder="Unité" className="sm:col-span-1 rounded-lg border border-gray-300 px-2 py-2 text-sm" />
+              <input type="number" min="0" step="0.01" value={form.unitPriceHT} onChange={(e) => setForm((f) => ({ ...f, unitPriceHT: parseFloat(e.target.value) || 0 }))} placeholder="PU HT" className="sm:col-span-2 rounded-lg border border-gray-300 px-2 py-2 text-sm" />
+              <select value={form.vatRate} onChange={(e) => setForm((f) => ({ ...f, vatRate: parseFloat(e.target.value) }))} className="sm:col-span-1 rounded-lg border border-gray-300 px-1 py-2 text-sm">
+                <option value={5.5}>5,5%</option><option value={10}>10%</option><option value={20}>20%</option>
+              </select>
+              <button onClick={addItem} disabled={adding} className="sm:col-span-2 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm font-medium disabled:opacity-50">
+                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Ajouter
+              </button>
+            </div>
+            <label className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-600">
+              <input type="checkbox" checked={form.isLabor} onChange={(e) => setForm((f) => ({ ...f, isLabor: e.target.checked }))} className="h-3.5 w-3.5 rounded border-gray-300" />
+              Main d&apos;œuvre (sinon fourniture)
+            </label>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            {catalogLoading ? (
+              <div className="p-8 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>
+            ) : catalog.length === 0 ? (
+              <p className="p-8 text-center text-sm text-gray-400">Aucun ouvrage. Ajoutez vos prestations courantes ci-dessus.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[520px]">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>{['Désignation', 'Catégorie', 'Unité', 'PU HT', 'TVA', ''].map((h) => (
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{h}</th>
+                    ))}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {catalog.filter((c) => !search || c.label.toLowerCase().includes(search.toLowerCase()) || (c.category ?? '').toLowerCase().includes(search.toLowerCase())).map((c) => (
+                      <tr key={c.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 font-medium text-gray-900">{c.label}{c.isLabor && <span className="ml-2 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Main d&apos;œuvre</span>}</td>
+                        <td className="px-4 py-2.5 text-gray-500">{c.category ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-gray-500">{c.unit}</td>
+                        <td className="px-4 py-2.5 text-gray-900">{formatCurrency(c.unitPriceHT)}</td>
+                        <td className="px-4 py-2.5 text-gray-500">{c.vatRate} %</td>
+                        <td className="px-4 py-2.5 text-right"><button onClick={() => deleteItem(c.id)} className="text-gray-300 hover:text-red-500" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-400">Ces ouvrages sont insérables en un clic depuis l&apos;écran de création de devis.</p>
+        </div>
+      )}
+
       {activeTab === 'reglementations' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {REGLEMENTATIONS.filter(

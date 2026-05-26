@@ -119,6 +119,8 @@ model Client {
   firstName   String
   lastName    String
   companyName String?
+  siret       String?
+  vatNumber   String?
   email       String
   phone       String
   address     String

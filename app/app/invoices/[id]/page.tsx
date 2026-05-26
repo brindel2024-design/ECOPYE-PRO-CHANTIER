@@ -9,6 +9,7 @@ import {
 import { INVOICE_STATUS_LABELS } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { PreSendCheck } from '@/components/PreSendCheck'
+import { FacturXCard } from '@/components/FacturXCard'
 
 const TYPE_LABELS: Record<string, string> = {
   ACOMPTE: 'Acompte', FINALE: 'Facture finale', INTERMEDIAIRE: 'Intermédiaire', AVOIR: 'Avoir',
@@ -222,6 +223,8 @@ export default function InvoiceDetailPage() {
       </Link>
 
       <PreSendCheck kind="invoice" id={id} />
+
+      <FacturXCard invoiceId={id} />
 
       {isLate && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-2 text-red-700 text-sm">

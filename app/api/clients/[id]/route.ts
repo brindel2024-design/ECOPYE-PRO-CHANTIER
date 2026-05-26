@@ -51,6 +51,8 @@ export async function PUT(request: Request, { params }: Params) {
       'firstName',
       'lastName',
       'companyName',
+      'siret',
+      'vatNumber',
       'email',
       'phone',
       'address',

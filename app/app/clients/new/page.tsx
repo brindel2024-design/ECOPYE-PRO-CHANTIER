@@ -15,6 +15,8 @@ export default function NewClientPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [siret, setSiret] = useState('')
+  const [vatNumber, setVatNumber] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
@@ -55,6 +57,8 @@ export default function NewClientPage() {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           companyName: type === 'PROFESSIONNEL' ? companyName.trim() : undefined,
+          siret: type === 'PROFESSIONNEL' ? siret.trim() || undefined : undefined,
+          vatNumber: type === 'PROFESSIONNEL' ? vatNumber.trim() || undefined : undefined,
           email: email.trim(),
           phone: phone.trim(),
           address: address.trim(),
@@ -132,10 +136,23 @@ export default function NewClientPage() {
         </div>
 
         {type === 'PROFESSIONNEL' && (
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Nom de l&apos;entreprise *</label>
-            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={inputClass} />
-          </div>
+          <>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Nom de l&apos;entreprise *</label>
+              <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={inputClass} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">SIRET</label>
+                <input type="text" value={siret} onChange={(e) => setSiret(e.target.value)} className={inputClass} placeholder="14 chiffres" />
+                <p className="mt-1 text-xs text-gray-400">Requis pour la facturation électronique B2B (réforme 2026-2027).</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">N° TVA intracom.</label>
+                <input type="text" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} className={inputClass} placeholder="FR..." />
+              </div>
+            </div>
+          </>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

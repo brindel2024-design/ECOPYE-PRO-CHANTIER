@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
-import { BLOG_POSTS } from '@/lib/blog-posts'
+import { formatBlogDate, getPublishedBlogPosts } from '@/lib/blog-posts'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Conseils chantier et gestion pour artisans',
@@ -17,6 +19,8 @@ export const metadata: Metadata = {
 }
 
 export default function BlogPage() {
+  const posts = getPublishedBlogPosts()
+
   return (
     <main>
       <section className="bg-slate-900 py-20">
@@ -38,11 +42,11 @@ export default function BlogPage() {
       <section className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="text-2xl font-bold text-gray-900">Derniers articles</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {BLOG_POSTS.map((post) => (
+          {posts.map((post) => (
             <article key={post.slug} className="rounded-2xl border border-gray-200 bg-white p-7 shadow-sm">
               <div className="flex items-center gap-3 text-sm text-gray-500">
                 <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">{post.category}</span>
-                <time dateTime={post.publishedAt}>26 mai 2026</time>
+                <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time>
               </div>
               <h3 className="mt-5 text-xl font-semibold text-gray-900">
                 <Link href={`/blog/${post.slug}`} className="hover:text-blue-700">

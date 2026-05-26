@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
-import { BLOG_POSTS } from '@/lib/blog-posts'
+import { getPublishedBlogPosts } from '@/lib/blog-posts'
+
+export const dynamic = 'force-dynamic'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://pro.ecopye.fr'
@@ -17,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...staticPages,
-    ...BLOG_POSTS.map((post) => ({
+    ...getPublishedBlogPosts().map((post) => ({
       url: `${baseUrl}/blog/${post.slug}`,
       lastModified: new Date(post.publishedAt),
       changeFrequency: 'monthly' as const,

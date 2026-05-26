@@ -31,7 +31,9 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
     }
 
-    const amountDue = Math.round((invoice.totalTTC - invoice.amountPaid) * 100)
+    // Montant exigible : TTC moins la retenue de garantie (retenue payée plus tard), moins le déjà-payé
+    const payableNow = invoice.totalTTC * (1 - (invoice.retentionPct ?? 0) / 100)
+    const amountDue = Math.round((payableNow - invoice.amountPaid) * 100)
     if (amountDue <= 0) {
       return NextResponse.json(
         { error: 'Cette facture est déjà réglée.' },

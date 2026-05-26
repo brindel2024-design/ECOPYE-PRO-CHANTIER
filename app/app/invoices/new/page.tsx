@@ -29,12 +29,13 @@ interface InvoiceLine {
   vatRate: number
 }
 
-type InvoiceType = 'ACOMPTE' | 'INTERMEDIAIRE' | 'FINALE'
+type InvoiceType = 'ACOMPTE' | 'INTERMEDIAIRE' | 'FINALE' | 'AVOIR'
 
 const TYPE_OPTIONS: Array<{ value: InvoiceType; label: string }> = [
   { value: 'ACOMPTE', label: 'Acompte' },
-  { value: 'INTERMEDIAIRE', label: 'Intermédiaire' },
+  { value: 'INTERMEDIAIRE', label: 'Situation / intermédiaire' },
   { value: 'FINALE', label: 'Facture finale' },
+  { value: 'AVOIR', label: 'Avoir (note de crédit)' },
 ]
 
 export default function NewInvoicePage() {
@@ -47,6 +48,8 @@ export default function NewInvoicePage() {
   const [type, setType] = useState<InvoiceType>('FINALE')
   const [dueDate, setDueDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [retentionPct, setRetentionPct] = useState(0)
+  const [situationPct, setSituationPct] = useState(0)
   const [lines, setLines] = useState<InvoiceLine[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -126,6 +129,8 @@ export default function NewInvoicePage() {
           type,
           dueDate: dueDate || undefined,
           notes: notes.trim() || undefined,
+          retentionPct: retentionPct > 0 ? retentionPct : undefined,
+          situationPct: quoteId && situationPct > 0 ? situationPct : undefined,
           lines: lines.map((l) => ({
             label: l.label,
             quantity: l.quantity,
@@ -219,6 +224,21 @@ export default function NewInvoicePage() {
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Date d&apos;échéance</label>
               <DateField value={dueDate} onChange={setDueDate} />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Retenue de garantie (%)</label>
+              <input type="number" min="0" max="100" step="0.5" value={retentionPct} onChange={(e) => setRetentionPct(parseFloat(e.target.value) || 0)} className={inputClass} placeholder="0" />
+              <p className="mt-1.5 text-xs text-gray-400">Souvent 5 %. Montant retenu jusqu&apos;à la fin de la garantie, déduit du montant à payer maintenant.</p>
+            </div>
+            {quoteId && (
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Situation — % d&apos;avancement</label>
+                <input type="number" min="0" max="100" step="1" value={situationPct} onChange={(e) => setSituationPct(parseFloat(e.target.value) || 0)} className={inputClass} placeholder="100" />
+                <p className="mt-1.5 text-xs text-gray-400">Facture de situation : facture ce % des lignes du devis (laisser 0 ou 100 pour le total).</p>
+              </div>
+            )}
           </div>
 
           <div>

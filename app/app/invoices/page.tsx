@@ -70,9 +70,14 @@ export default function InvoicesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Factures</h1>
           <p className="text-sm text-gray-500 mt-0.5">Gestion et suivi de vos factures</p>
         </div>
-        <Link href="/app/invoices/new" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          <Plus className="w-4 h-4" />Nouvelle facture
-        </Link>
+        <div className="flex items-center gap-2">
+          <a href="/api/accounting/export" className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" title="Export CSV pour votre expert-comptable">
+            <TrendingUp className="w-4 h-4" />Export comptable
+          </a>
+          <Link href="/app/invoices/new" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <Plus className="w-4 h-4" />Nouvelle facture
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

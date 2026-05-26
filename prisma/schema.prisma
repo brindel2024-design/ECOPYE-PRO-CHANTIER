@@ -216,6 +216,7 @@ model Invoice {
   vatAmount    Float         @default(0)
   totalTTC     Float         @default(0)
   amountPaid   Float         @default(0)
+  retentionPct Float         @default(0)
   dueDate      DateTime?
   issuedAt     DateTime      @default(now())
   paidAt       DateTime?

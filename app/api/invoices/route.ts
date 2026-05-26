@@ -55,6 +55,8 @@ export async function POST(request: Request) {
       lines = [],
       dueDate,
       notes,
+      retentionPct,
+      situationPct,
     } = body
 
     let resolvedClientId = clientId
@@ -74,10 +76,13 @@ export async function POST(request: Request) {
       }
       resolvedClientId = quote.clientId
       if (invoiceLines.length === 0) {
+        // Facture de situation : on facture X % de l'avancement du marché.
+        const pct = Number(situationPct)
+        const factor = pct > 0 && pct < 100 ? pct / 100 : 1
         invoiceLines = quote.lines.map((l) => ({
-          label: l.label,
+          label: factor < 1 ? `${l.label} (situation ${pct}%)` : l.label,
           description: l.description,
-          quantity: l.quantity,
+          quantity: Math.round(l.quantity * factor * 1000) / 1000,
           unit: l.unit,
           unitPriceHT: l.unitPriceHT,
           vatRate: l.vatRate,
@@ -124,6 +129,7 @@ export async function POST(request: Request) {
         subtotalHT: totals.subtotalHT,
         vatAmount: totals.vatAmount,
         totalTTC: totals.totalTTC,
+        retentionPct: Number(retentionPct) > 0 ? Math.min(Number(retentionPct), 100) : 0,
         dueDate: dueDate ? new Date(dueDate) : null,
         notes: notes ?? null,
         lines: {

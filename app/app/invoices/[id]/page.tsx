@@ -39,7 +39,7 @@ interface InvoiceLine {
 interface InvoiceData {
   id: string; number: string; type: string; status: string
   issuedAt: string; dueDate: string | null
-  subtotalHT: number; vatAmount: number; totalTTC: number; amountPaid: number
+  subtotalHT: number; vatAmount: number; totalTTC: number; amountPaid: number; retentionPct?: number
   notes: string | null
   client: { id: string; firstName: string; lastName: string; email: string; phone: string; address: string; city: string }
   lines: InvoiceLine[]
@@ -204,7 +204,8 @@ export default function InvoiceDetailPage() {
     )
   }
 
-  const resteAPayer = invoice.totalTTC - invoice.amountPaid
+  const retentionAmount = invoice.totalTTC * ((invoice.retentionPct ?? 0) / 100)
+  const resteAPayer = invoice.totalTTC - retentionAmount - invoice.amountPaid
   const isLate = invoice.status === 'EN_RETARD'
   const daysLate = isLate && invoice.dueDate
     ? Math.ceil((new Date().getTime() - new Date(invoice.dueDate).getTime()) / 86400000)
@@ -334,6 +335,11 @@ export default function InvoiceDetailPage() {
             <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-2">
               <span>Total TTC</span><span>{formatCurrency(invoice.totalTTC)}</span>
             </div>
+            {retentionAmount > 0.01 && (
+              <div className="flex justify-between text-amber-700">
+                <span>Retenue de garantie ({invoice.retentionPct} %)</span><span>- {formatCurrency(retentionAmount)}</span>
+              </div>
+            )}
             {invoice.amountPaid > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Déjà payé</span><span>- {formatCurrency(invoice.amountPaid)}</span>

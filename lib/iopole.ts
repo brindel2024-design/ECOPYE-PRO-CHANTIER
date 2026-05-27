@@ -16,6 +16,24 @@
  *   IOPOLE_CUSTOMER_HEADER  nom du header customer-id (défaut "customer-id")
  */
 
+/**
+ * Cartographie des endpoints de l'API opérateur de facturation Iopole.
+ * (Chemins en anglais ; à reconfirmer/ajuster lors du test avec clés sandbox.)
+ * Base probable : `${IOPOLE_API_BASE}/v1/api/operator/invoicing`.
+ */
+export const IOPOLE_ENDPOINTS = {
+  emitInvoice: 'POST /v1/invoice',
+  getInvoice: 'GET /v1/invoice/{invoiceId}',
+  searchInvoices: 'GET /v1.1/invoice/search',
+  notSeen: 'GET /v1/invoice/notSeen',
+  markAsSeen: 'PUT /v1/invoice/{invoiceId}/markAsSeen',
+  downloadReadable: 'GET /v1/invoice/{invoiceId}/download/readable',
+  statusHistory: 'GET /v1/invoice/{invoiceId}/status-history',
+  generateFacturX: 'POST /v1/tools/facturx/generate',
+  generateCii: 'POST /v1/tools/cii/generate',
+  directoryFrench: 'GET /v1/directory/french',
+} as const
+
 export function isIopoleConfigured(): boolean {
   return Boolean(
     process.env.IOPOLE_TOKEN_URL &&

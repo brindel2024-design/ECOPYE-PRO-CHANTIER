@@ -85,6 +85,7 @@ export async function POST(request: Request) {
   // sur les suivants en cas de saturation (429), crédits (402) ou indispo (404/5xx).
   // OPENROUTER_MODEL (env) reste prioritaire si défini.
   const FREE_FALLBACKS = [
+    'openrouter/free',
     'deepseek/deepseek-v4-flash:free',
     'openai/gpt-oss-120b:free',
     'openai/gpt-oss-20b:free',
@@ -107,6 +108,8 @@ export async function POST(request: Request) {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'https://pro.ecopye.fr',
+          'X-Title': 'ECOPYE Pro Chantier',
         },
         body: JSON.stringify({
           model,
